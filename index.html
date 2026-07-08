@@ -55,6 +55,19 @@
     .chat-input-area input { flex: 1; background: transparent; border: none; padding: 12px; color: white; font-size: 0.95rem; }
     .chat-input-area input:focus { outline: none; }
 
+    /* Galeria / Fichas de Suspeitos */
+    .dossie-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+    .dossie-card { display: flex; gap: 12px; background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+    .dossie-foto-wrap { position: relative; width: 72px; height: 72px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: #0f172a; border: 1px solid var(--border); }
+    .dossie-foto-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .dossie-foto-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; background: #0f172a; }
+    .dossie-info { flex: 1; min-width: 0; }
+    .dossie-nome { font-weight: 700; color: var(--text-main); font-size: 1rem; }
+    .dossie-cargo { color: var(--accent); font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; }
+    .dossie-tracos { display: flex; flex-wrap: wrap; gap: 4px 8px; }
+    .dossie-traco { font-size: 0.75rem; color: var(--text-muted); background: #0f172a; border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; }
+    .dossie-traco strong { color: var(--text-main); }
+
     /* Filtros Mandado */
     .filter-group { margin-bottom: 12px; }
     .filter-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; }
@@ -147,6 +160,7 @@
       <div class="card">
         <h3>Banco de Dados de Criminosos</h3>
         <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px;">Preencha os dados coletados para rastrear o agente no sistema da polícia.</p>
+        <button class="btn btn-secondary" style="width:100%; margin-bottom: 10px;" onclick="jogo.mudarTela('galeria')">📁 Consultar Fichas de Suspeitos</button>
 
         <div class="filter-group">
           <label>Gênero</label>
@@ -174,6 +188,16 @@
         <p style="font-weight: bold; text-align: center;" id="txt-resultado-filtro">Resultados encontrados: 13</p>
         <button class="btn" id="btn-emitir-mandado" disabled style="width: 100%; margin-top: 10px;">Emitir Mandado de Prisão</button>
       </div>
+    </div>
+
+    <!-- TELA GALERIA DE SUSPEITOS (FICHAS) -->
+    <div id="view-galeria" class="view">
+      <div class="card">
+        <h3>📁 Fichas de Suspeitos</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px;">Consulte as fichas e cruze com as pistas que você já coletou nos interrogatórios.</p>
+        <button class="btn btn-secondary" style="width:100%;" onclick="jogo.mudarTela('mandado')">← Voltar ao Mandado</button>
+      </div>
+      <div id="galeria-grid" class="dossie-grid"></div>
     </div>
 
     <!-- TELA CONFIGURAÇÃO -->
@@ -271,6 +295,19 @@
     // ==== ATENÇÃO JORGE: troque pela URL real do seu Worker publicado no Cloudflare ====
     // Ex: https://cacada-mundial-worker.SEU-SUBDOMINIO.workers.dev/
     const CFG_WORKER_URL = "https://apicacmundial.franckjlfp.workers.dev/";
+
+    // Convenção de nome de arquivo da foto do suspeito: primeira palavra do codinome, em minúsculas.
+    // Ex: "Nine Finger" -> nine.png | "Madame Mirage" -> madame.png | "Viper" -> viper.png
+    // Salve as fotos geradas em: assets/suspeitos/<nome>.png
+    function nomeArquivoFoto(codinome) {
+      const primeiraPalavra = codinome.trim().split(" ")[0];
+      return primeiraPalavra
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // remove acentos, por segurança
+    }
+    function caminhoFotoSuspeito(codinome) {
+      return `assets/suspeitos/${nomeArquivoFoto(codinome)}.png`;
+    }
 
     // Modelos padrão por provedor (usados quando o campo "Modelo" fica em branco)
     const MODELOS_PADRAO = {
@@ -370,6 +407,39 @@
         if(telaId === "config") {
           this.carregarCamposConfig();
         }
+        if(telaId === "galeria") {
+          this.renderizarGaleria();
+        }
+      }
+
+      renderizarGaleria() {
+        const grid = document.getElementById("galeria-grid");
+        grid.innerHTML = "";
+
+        const labelsTraco = { genero: "Gênero", cabelo: "Cabelo", hobby: "Hobby", veiculo: "Veículo", acessorio: "Acessório" };
+
+        SUSPEITOS.forEach(s => {
+          const card = document.createElement("div");
+          card.className = "dossie-card";
+
+          const foto = caminhoFotoSuspeito(s.codinome);
+          card.innerHTML = `
+            <div class="dossie-foto-wrap">
+              <img src="${foto}" alt="${s.codinome}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+              <div class="dossie-foto-fallback" style="display:none;">🕵️</div>
+            </div>
+            <div class="dossie-info">
+              <div class="dossie-nome">${s.codinome}</div>
+              <div class="dossie-cargo">${s.cargo}</div>
+              <div class="dossie-tracos">
+                ${["genero","cabelo","hobby","veiculo","acessorio"].map(attr =>
+                  `<span class="dossie-traco">${labelsTraco[attr]}: <strong>${s[attr]}</strong></span>`
+                ).join("")}
+              </div>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
       }
 
       abrirTestemunha(local, profissao) {
