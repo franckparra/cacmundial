@@ -24,7 +24,7 @@
     header h1 { font-size: 1.2rem; color: var(--text-main); font-weight: 700; }
     .status-badge { background-color: #7f1d1d; color: #fca5a5; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; font-variant-numeric: tabular-nums; }
 
-    main { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; position: relative; }
+    main { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px)); position: relative; -webkit-overflow-scrolling: touch; }
     .view { display: none; height: 100%; }
     .view.active { display: flex; flex-direction: column; }
 
@@ -440,6 +440,13 @@
           `;
           grid.appendChild(card);
         });
+
+        // Espaçador de segurança: garante que o último card (ex: Echo) role totalmente
+        // acima do menu inferior fixo, mesmo em telas com barra de navegação maior.
+        const espacador = document.createElement("div");
+        espacador.style.height = "24px";
+        espacador.style.flexShrink = "0";
+        grid.appendChild(espacador);
       }
 
       abrirTestemunha(local, profissao) {
