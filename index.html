@@ -312,9 +312,13 @@
         const cidadesEmbaralhadas = [...CIDADES].sort(() => 0.5 - Math.random());
         this.estado.rota = cidadesEmbaralhadas.slice(0, tamanhoRota);
 
-        // Distribui características discretas de pista pelas cidades da rota
+        // Distribui características discretas de pista pelas cidades da rota.
+        // IMPORTANTE: a última cidade da rota é o esconderijo final e NÃO tem testemunhas
+        // (locais-grid fica escondido lá). Por isso as pistas só podem ser atribuídas
+        // às cidades ANTERIORES à última, senão a pista fica impossível de obter.
         const attrs = ["genero", "cabelo", "hobby", "veiculo", "acessorio"];
-        this.estado.rota.forEach((cidade, i) => {
+        const cidadesComTestemunha = this.estado.rota.slice(0, -1);
+        cidadesComTestemunha.forEach((cidade, i) => {
           const attr = attrs[i % attrs.length];
           let label = attr.toUpperCase();
           if(attr === "genero") label = "Gênero";
