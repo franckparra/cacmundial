@@ -149,7 +149,7 @@
     <!-- TELA VIAJAR -->
     <div id="view-viajar" class="view">
       <div class="card">
-        <h3>Painel de Voo da INTERPOL</h3>
+        <h3>Painel de Voo da ACME</h3>
         <p style="color: var(--text-muted); font-size: 0.9rem;">Escolha o próximo destino. Voos consomem 8 horas virtuais.</p>
       </div>
       <div id="conexoes-grid" class="grid"></div>
@@ -661,7 +661,7 @@
           btnEmitir.innerText = `Emitir Mandado para ${alvo.codinome}`;
           btnEmitir.onclick = () => {
             this.estado.mandadoEmitidoPara = alvo.codinome;
-            alert(`Mandado de Prisão Internacional emitido pela INTERPOL contra ${alvo.codinome}!`);
+            alert(`Mandado de Prisão Internacional emitido pela ACME contra ${alvo.codinome}!`);
           };
         } else {
           lblInfo.innerText = `Resultados possíveis no banco de dados: ${filtrados.length}`;
