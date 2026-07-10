@@ -1171,7 +1171,7 @@
       return p.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     }
     function caminhoFotoSuspeito(codinome) {
-      return `/${nomeArquivoFoto(codinome)}.png`;
+      return `${nomeArquivoFoto(codinome)}.png`;
     }
 
     const MODELOS_PADRAO = {
