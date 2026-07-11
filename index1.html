@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Caçada Mundial</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --bg-card: #1e293b;
+      --accent: #ef4444;
+      --accent-hover: #dc2626;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    
+    header { background-color: var(--bg-card); padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+    header h1 { font-size: 1.2rem; color: var(--text-main); font-weight: 700; }
+    .status-badge { background-color: #7f1d1d; color: #fca5a5; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; font-variant-numeric: tabular-nums; }
+    
+    main { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; position: relative; }
+    .view { display: none; height: 100%; }
+    .view.active { display: flex; flex-direction: column; }
+
+    /* Cards e Elementos */
+    .card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+    .btn { background-color: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; text-align: center; text-decoration: none; display: inline-block; }
+    .btn:hover { background-color: var(--accent-hover); }
+    .btn-secondary { background-color: #334155; border: 1px solid var(--border); }
+    .btn-secondary:hover { background-color: #475569; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Grid de Locais e Viagem */
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+    .item-select { background-color: #1e293b; border: 1px solid var(--border); border-radius: 6px; padding: 15px; text-align: center; cursor: pointer; font-weight: 500; transition: border-color 0.2s; }
+    .item-select:hover { border-color: var(--accent); }
+
+    /* Chat UI */
+    .chat-container { display: flex; flex-direction: column; height: 100%; max-height: 400px; min-height: 280px; background: #0b1329; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; margin-top: 10px; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+    .msg { max-width: 85%; padding: 10px; border-radius: 8px; font-size: 0.95rem; line-height: 1.4; }
+    .msg.system { background: #334155; align-self: flex-start; }
+    .msg.user { background: #0284c7; align-self: flex-end; }
+    .chat-chips { display: flex; gap: 6px; overflow-x: auto; padding: 10px; background: var(--bg-card); border-top: 1px solid var(--border); white-space: nowrap; }
+    .chip { background: #334155; border: 1px solid var(--border); color: white; padding: 8px 12px; border-radius: 16px; font-size: 0.85rem; cursor: pointer; }
+    .chip:hover { background: #475569; }
+    .chat-input-area { display: flex; border-top: 1px solid var(--border); background: var(--bg-card); }
+    .chat-input-area input { flex: 1; background: transparent; border: none; padding: 12px; color: white; font-size: 0.95rem; }
+    .chat-input-area input:focus { outline: none; }
+
+    /* Filtros Mandado */
+    .filter-group { margin-bottom: 12px; }
+    .filter-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; }
+    .filter-group select { width: 100%; background: #0f172a; border: 1px solid var(--border); padding: 10px; color: white; border-radius: 6px; font-size: 1rem; }
+
+    /* Bottom Navigation */
+    nav { position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--bg-card); border-top: 1px solid var(--border); display: flex; justify-content: space-around; z-index: 100; }
+    nav button { flex: 1; background: none; border: none; color: var(--text-muted); padding: 12px 5px; font-size: 0.8rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    nav button.active { color: var(--accent); font-weight: bold; }
+    nav button svg { width: 20px; height: 20px; fill: currentColor; }
+
+    /* Footer Institucional */
+    footer { text-align: center; font-size: 0.75rem; color: var(--text-muted); padding: 10px 0; margin-top: auto; }
+    footer a { color: var(--text-muted); text-decoration: none; font-weight: 600; }
+
+    .loader { border: 3px solid #334155; border-top: 3px solid var(--accent); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1 id="app-title">Caçada Mundial</h1>
+    <div id="game-timer" class="status-badge hidden">⏳ 72h restantes</div>
+  </header>
+
+  <main>
+    <!-- TELA INICIAL (SPLASH) -->
+    <div id="view-splash" class="view active" style="justify-content: center; text-align: center;">
+      <div style="margin-bottom: 30px;">
+        <h2 style="font-size: 2.2rem; margin-bottom: 10px; color: var(--accent);">KAOS-13 EM AÇÃO</h2>
+        <p style="color: var(--text-muted); max-width: 400px; margin: 0 auto;">A agência de terrorismo internacional KAOS-13 está roubando patrimônios pelo mundo. Encontre as pistas, emita o mandado e capture o agente antes que o tempo acabe.</p>
+      </div>
+      <button class="btn" onclick="jogo.iniciarCaso()" style="align-self: center;">Iniciar Nova Investigação</button>
+      <footer>Desenvolvido por <a href="https://tokenslp.com.br" target="_blank">Token SLP</a></footer>
+    </div>
+
+    <!-- TELA INVESTIGAR -->
+    <div id="view-investigar" class="view">
+      <div class="card">
+        <h3 id="txt-cidade-local">Rio de Janeiro</h3>
+        <p id="txt-status-local" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">Selecione um ponto de interesse para interrogar uma testemunha local:</p>
+      </div>
+      
+      <div id="locais-grid" class="grid">
+        <div class="item-select" onclick="jogo.abrirTestemunha('Aeroporto', 'Recepcionista do Portão de Embarque')">🏢 Aeroporto</div>
+        <div class="item-select" onclick="jogo.abrirTestemunha('Hotel Grande', 'Gerente do Saguão')">🏨 Hotel</div>
+        <div class="item-select" onclick="jogo.abrirTestemunha('Mercado Central', 'Comerciante de Especiarias')">🏛️ Mercado Central</div>
+      </div>
+
+      <div id="box-chat-testemunha" class="hidden">
+        <div class="card" style="margin-top: 15px; margin-bottom: 0; padding: 10px; background: #111827; border-bottom: none; border-bottom-left-radius: 0; border-bottom-right-radius: 0;">
+          <strong id="lbl-nome-testemunha">Testemunha</strong>
+        </div>
+        <div class="chat-container">
+          <div id="chat-messages" class="chat-messages"></div>
+          <div id="chat-loading" class="padding hidden" style="padding:10px; font-size:0.85rem; color:var(--text-muted);"><span class="loader"></span>Inquirindo testemunha...</div>
+          <div class="chat-chips">
+            <button class="chip" onclick="jogo.enviarPerguntaRapida('paradeiro')">💼 Para onde fugiu?</button>
+            <button class="chip" onclick="jogo.enviarPerguntaRapida('aparencia')">🕵️‍♂️ Como era o suspeito?</button>
+          </div>
+          <div class="chat-input-area">
+            <input type="text" id="input-chat-livre" placeholder="Digite uma pergunta customizada..." onkeypress="if(event.key === 'Enter') jogo.enviarPerguntaLivre()">
+            <button class="btn" onclick="jogo.enviarPerguntaLivre()" style="border-radius:0; padding: 0 15px;">Ir</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Box Esconderijo Final condicional -->
+      <div id="box-esconderijo-final" class="card hidden" style="margin-top: 15px; border-color: var(--accent); text-align: center;">
+        <h3 style="color: var(--accent);">🚨 LOCAL DE ESCONDERIJO DETECTADO</h3>
+        <p style="font-size:0.9rem; margin: 8px 0;" id="txt-aviso-final">O suspeito está encurralado nesta cidade! Certifique-se de ter o mandado correto.</p>
+        <button class="btn" onclick="jogo.executarPrisao()">Executar Prisão</button>
+      </div>
+    </div>
+
+    <!-- TELA VIAJAR -->
+    <div id="view-viajar" class="view">
+      <div class="card">
+        <h3>Painel de Voo da ACME</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Escolha o próximo destino. Voos consomem 8 horas virtuais.</p>
+      </div>
+      <div id="conexoes-grid" class="grid"></div>
+    </div>
+
+    <!-- TELA MANDADO -->
+    <div id="view-mandado" class="view">
+      <div class="card">
+        <h3>Banco de Dados de Criminosos</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px;">Preencha os dados coletados para rastrear o agente no sistema da polícia.</p>
+        
+        <div class="filter-group">
+          <label>Gênero</label>
+          <select id="f-genero" onchange="jogo.filtrarSuspeitos()"><option value="">Qualquer</option><option value="Masculino">Masculino</option><option value="Feminino">Feminino</option><option value="Não-Binário">Não-Binário</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Cor do Cabelo</label>
+          <select id="f-cabelo" onchange="jogo.filtrarSuspeitos()"><option value="">Qualquer</option><option value="Preto">Preto</option><option value="Loiro">Loiro</option><option value="Ruivo">Ruivo</option><option value="Castanho">Castanho</option><option value="Grisalho">Grisalho</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Hobby Conhecido</label>
+          <select id="f-hobby" onchange="jogo.filtrarSuspeitos()"><option value="">Qualquer</option><option value="Xadrez">Xadrez</option><option value="Poker">Poker</option><option value="Robótica">Robótica</option><option value="Escultura">Escultura</option><option value="Escalada">Escalada</option><option value="Culinária">Culinária</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Veículo Avistado</label>
+          <select id="f-veiculo" onchange="jogo.filtrarSuspeitos()"><option value="">Qualquer</option><option value="SUV Blindado">SUV Blindado</option><option value="Moto Esportiva">Moto Esportiva</option><option value="Carro Elétrico">Carro Elétrico</option><option value="Helicóptero">Helicóptero</option><option value="Patinete Elétrico">Patinete Elétrico</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Acessório Marcante</label>
+          <select id="f-acessorio" onchange="jogo.filtrarSuspeitos()"><option value="">Qualquer</option><option value="Luva de Couro">Luva de Couro</option><option value="Tatuagem de Aranha">Tatuagem de Aranha</option><option value="Óculos Escuros">Óculos Escuros</option><option value="Relógio de Ouro">Relógio de Ouro</option><option value="Cicatriz">Cicatriz</option></select>
+        </div>
+      </div>
+
+      <div class="card" id="box-resultado-mandado">
+        <p style="font-weight: bold; text-align: center;" id="txt-resultado-filtro">Resultados encontrados: 13</p>
+        <button class="btn" id="btn-emitir-mandado" disabled style="width: 100%; margin-top: 10px;">Emitir Mandado de Prisão</button>
+      </div>
+    </div>
+
+    <!-- TELA CONFIGURAÇÃO -->
+    <div id="view-config" class="view">
+      <div class="card">
+        <h3>Configuração de Inteligência Artificial</h3>
+        <p style="color: var(--text-muted); font-size:0.85rem; margin-bottom: 15px;">Os dados trafegam pela Edge da Cloudflare diretamente para o provedor sem armazenamento centralizado.</p>
+        
+        <div class="filter-group">
+          <label>Provedor de IA</label>
+          <select id="cfg-provedor" onchange="jogo.ajustarCamposConfig()">
+            <option value="google">Google Gemini (gemini-2.5-flash)</option>
+            <option value="openrouter">OpenRouter (Llama 3)</option>
+            <option value="nvidia">Nvidia NIM</option>
+            <option value="inception">Inception AI</option>
+            <option value="ollama">Ollama (Local / Localhost)</option>
+          </select>
+        </div>
+        
+        <div class="filter-group" id="box-cfg-key">
+          <label>Chave de API (API Key)</label>
+          <input type="password" id="cfg-key" style="width:100%; padding:10px; background:#0f172a; border:1px solid var(--border); color:white; border-radius:6px;">
+        </div>
+
+        <div class="filter-group hidden" id="box-cfg-endpoint">
+          <label>Endpoint Customizado / Local URL</label>
+          <input type="text" id="cfg-endpoint" placeholder="http://localhost:11434" style="width:100%; padding:10px; background:#0f172a; border:1px solid var(--border); color:white; border-radius:6px;">
+        </div>
+
+        <button class="btn" onclick="jogo.salvarConfig()" style="width:100%; margin-top:10px;">Salvar Configurações</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- BOTTOM NAVIGATION BAR -->
+  <nav id="app-nav" class="hidden">
+    <button id="nav-investigar" class="active" onclick="jogo.mudarTela('investigar')">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      Investigar
+    </button>
+    <button id="nav-viajar" onclick="jogo.mudarTela('viajar')">
+      <svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L14 19v-5.5l8 2.5z"/></svg>
+      Viajar
+    </button>
+    <button id="nav-mandado" onclick="jogo.mudarTela('mandado')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+      Mandado
+    </button>
+    <button id="nav-config" onclick="jogo.mudarTela('config')">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      Setup IA
+    </button>
+  </nav>
+
+  <script>
+    // DATA VECTORS (Injetados localmente conforme especificação ERS)
+    const SUSPEITOS = [
+      { codinome: "Nine Finger", nome_real: "Desconhecido", cargo: "Líder Supremo", genero: "Masculino", cabelo: "Grisalho", hobby: "Xadrez", veiculo: "SUV Blindado", acessorio: "Luva de Couro" },
+      { codinome: "Viper", nome_real: "Elena Rostova", cargo: "Infiltração", genero: "Feminino", cabelo: "Preto", hobby: "Poker", veiculo: "Moto Esportiva", acessorio: "Tatuagem de Aranha" },
+      { codinome: "Cortex", nome_real: "Arthur Pendelton", cargo: "Ciber-Terrorista", genero: "Masculino", cabelo: "Loiro", hobby: "Robótica", veiculo: "Carro Elétrico", acessorio: "Óculos Escuros" },
+      { codinome: "Madame Mirage", nome_real: "Chantal Dubois", cargo: "Contrabandista", genero: "Feminino", cabelo: "Ruivo", hobby: "Escultura", veiculo: "Helicóptero", acessorio: "Relógio de Ouro" },
+      { codinome: "Phantom", nome_real: "Alexei Volkov", cargo: "Força Bruta", genero: "Masculino", cabelo: "Preto", hobby: "Escalada", veiculo: "SUV Blindado", acessorio: "Cicatriz" },
+      { codinome: "Glitch", nome_real: "Morgan Vance", cargo: "Sabotador", genero: "Não-Binário", cabelo: "Ruivo", hobby: "Robótica", veiculo: "Patinete Elétrico", acessorio: "Óculos Escuros" },
+      { codinome: "Alquimista", nome_real: "Dr. Hugo Fischer", cargo: "Químico", genero: "Masculino", cabelo: "Grisalho", hobby: "Culinária", veiculo: "Carro Elétrico", acessorio: "Cicatriz" },
+      { codinome: "Siren", nome_real: "Naomi Tanaka", cargo: "Disfarces", genero: "Feminino", cabelo: "Castanho", hobby: "Poker", veiculo: "Moto Esportiva", acessorio: "Relógio de Ouro" },
+      { codinome: "Monarca", nome_real: "Stefano Moretti", cargo: "Financiador", genero: "Masculino", cabelo: "Castanho", hobby: "Xadrez", veiculo: "Helicóptero", acessorio: "Relógio de Ouro" },
+      { codinome: "Specter", nome_real: "Klaus Berger", cargo: "Espião", genero: "Masculino", cabelo: "Loiro", hobby: "Escalada", veiculo: "Moto Esportiva", acessorio: "Luva de Couro" },
+      { codinome: "Nebula", nome_real: "Iris Thorne", cargo: "Logística", genero: "Feminino", cabelo: "Loiro", hobby: "Escultura", veiculo: "Carro Elétrico", acessorio: "Tatuagem de Aranha" },
+      { codinome: "Apex", nome_real: "Marcus Vance", cargo: "Piloto de Fuga", genero: "Masculino", cabelo: "Ruivo", hobby: "Poker", veiculo: "Moto Esportiva", acessorio: "Óculos Escuros" },
+      { codinome: "Echo", nome_real: "Rin Sato", cargo: "Escuta/Radar", genero: "Não-Binário", cabelo: "Castanho", hobby: "Culinária", veiculo: "Patinete Elétrico", acessorio: "Tatuagem de Aranha" }
+    ];
+
+    const CIDADES = [
+      { id: "rio", nome: "Rio de Janeiro", pais: "Brasil", moeda: "Real", idioma: "Português", pontos_turisticos: ["Cristo Redentor", "Pão de Açúcar", "Copacabana"], culinaria: "Feijoada, Caipirinha", fatos_culturais: ["Carnaval", "Bossa Nova"] },
+      { id: "sp", nome: "São Paulo", pais: "Brasil", moeda: "Real", idioma: "Português", pontos_turisticos: ["Avenida Paulista", "MASP", "Parque Ibirapuera"], culinaria: "Pizza paulistana, Virado à Paulista", fatos_culturais: ["Maior metrópole da América Latina"] },
+      { id: "tokyo", nome: "Tóquio", pais: "Japão", moeda: "Iene", idioma: "Japonês", pontos_turisticos: ["Cruzamento de Shibuya", "Torre de Tóquio", "Monte Fuji"], culinaria: "Sushi, Ramen", fatos_culturais: ["Capital tecnológica e dos animes"] },
+      { id: "cairo", nome: "Cairo", pais: "Egito", moeda: "Libra Egípcia", idioma: "Árabe", pontos_turisticos: ["Pirâmides de Gizé", "Esfinge", "Rio Nilo"], culinaria: "Koshari, Falafel", fatos_culturais: ["História antiga dos Faraós"] },
+      { id: "paris", nome: "Paris", pais: "França", moeda: "Euro", idioma: "Francês", pontos_turisticos: ["Torre Eiffel", "Museu do Louvre"], culinaria: "Croissant, Macarons", fatos_culturais: ["Cidade Luz", "Capital da moda"] },
+      { id: "ny", nome: "Nova York", pais: "Estados Unidos", moeda: "Dólar", idioma: "Inglês", pontos_turisticos: ["Estátua da Liberdade", "Times Square", "Central Park"], culinaria: "Hambúrguer, Pizza de NY", fatos_culturais: ["Broadway"] },
+      { id: "london", nome: "Londres", pais: "Reino Unido", moeda: "Libra Esterlina", idioma: "Inglês", pontos_turisticos: ["Big Ben", "London Eye"], culinaria: "Fish and Chips", fatos_culturais: ["Cultura Real"] },
+      { id: "roma", nome: "Roma", pais: "Itália", moeda: "Euro", idioma: "Italiano", pontos_turisticos: ["Coliseu", "Fontana di Trevi"], culinaria: "Pasta Carbonara, Gelato", fatos_culturais: ["Império Romano"] },
+      { id: "sydney", nome: "Sydney", pais: "Austrália", moeda: "Dólar Australiano", idioma: "Inglês", pontos_turisticos: ["Opera House", "Sydney Harbour Bridge"], culinaria: "Churrasco Australiano", fatos_culturais: ["Cultura do Surfe"] },
+      { id: "capetown", nome: "Cidade do Cabo", pais: "África do Sul", moeda: "Rand", idioma: "Inglês/Africâner", pontos_turisticos: ["Table Mountain", "Cabo da Boa Esperança"], culinaria: "Biltong", fatos_culturais: ["História de Nelson Mandela"] },
+      { id: "delhi", nome: "Nova Déli", pais: "Índia", moeda: "Rupia Indiana", idioma: "Hindi", pontos_turisticos: ["Taj Mahal", "Portão da Índia"], culinaria: "Chicken Tikka Masala", fatos_culturais: ["Festivais das Cores (Holi)"] },
+      { id: "mexico", nome: "Cidade do México", pais: "México", moeda: "Peso Mexicano", idioma: "Espanhol", pontos_turisticos: ["Pirâmides de Teotihuacán", "Museu Frida Kahlo"], culinaria: "Tacos, Guacamole", fatos_culturais: ["Dia dos Mortos"] },
+      { id: "moscow", nome: "Moscou", pais: "Rússia", moeda: "Rublo", idioma: "Russo", pontos_turisticos: ["Praça Vermelha", "Kremlin"], culinaria: "Borsch, Strogonoff", fatos_culturais: ["Arquitetura Soviética"] }
+    ];
+
+    // INSTANCE CONFIG DO TRABALHO DE EDGE
+    const CFG_WORKER_URL = "https://apicacmundial.franckjlfp.workers.dev/"; // Substituir com a URL real gerada pelo Wrangler/Cloudflare
+
+    class EngineJogo {
+      constructor() {
+        this.estado = {
+          horasRestantes: 72,
+          suspeitoAlvo: null,
+          rota: [],
+          indiceCidadeAtual: 0,
+          caracteristicaSorteadaPorCidade: {},
+          mandadoEmitidoPara: null,
+          testemunhaAtiva: null
+        };
+      }
+
+      iniciarCaso() {
+        const provedorSalvo = localStorage.getItem("cfg_provedor");
+        if (!provedorSalvo) {
+          alert("Atenção detetive! Configure seu provedor de Inteligência Artificial e chave na aba 'Setup IA' antes de jogar.");
+          this.mudarTela("config");
+          return;
+        }
+
+        // 1. Reset e Setup Sorteio
+        this.estado.horasRestantes = 72;
+        this.estado.mandadoEmitidoPara = null;
+        this.estado.indiceCidadeAtual = 0;
+        this.estado.suspeitoAlvo = SUSPEITOS[Math.floor(Math.random() * SUSPEITOS.length)];
+        
+        const tamanhoRota = Math.floor(Math.random() * 3) + 4; // 4 a 6 cidades
+        const cidadesEmbaralhadas = [...CIDADES].sort(() => 0.5 - Math.random());
+        this.estado.rota = cidadesEmbaralhadas.slice(0, tamanhoRota);
+
+        // Distribui características discretas de pista pelas cidades da rota
+        const attrs = ["genero", "cabelo", "hobby", "veiculo", "acessorio"];
+        this.estado.rota.forEach((cidade, i) => {
+          const attr = attrs[i % attrs.length];
+          let label = attr.toUpperCase();
+          if(attr === "genero") label = "Gênero";
+          if(attr === "cabelo") label = "Cabelo";
+          this.estado.caracteristicaSorteadaPorCidade[cidade.id] = `${label}: ${this.estado.suspeitoAlvo[attr]}`;
+        });
+
+        // Interface Update
+        document.getElementById("game-timer").classList.remove("hidden");
+        document.getElementById("app-nav").classList.remove("hidden");
+        this.atualizarHUD();
+        this.mudarTela("investigar");
+        this.gerarConexoesVoo();
+        
+        // Limpar visual antigo do chat
+        document.getElementById("box-chat-testemunha").classList.add("hidden");
+      }
+
+      atualizarHUD() {
+        document.getElementById("game-timer").innerText = `⏳ ${this.estado.horasRestantes}h restantes`;
+        const cidadeAtual = this.estado.rota[this.estado.indiceCidadeAtual];
+        document.getElementById("txt-cidade-local").innerText = `${cidadeAtual.nome}, ${cidadeAtual.pais}`;
+        
+        // Verifica se é a última cidade
+        const isUltima = this.estado.indiceCidadeAtual === this.estado.rota.length - 1;
+        if(isUltima) {
+          document.getElementById("locais-grid").classList.add("hidden");
+          document.getElementById("box-esconderijo-final").classList.remove("hidden");
+          document.getElementById("txt-status-local").innerText = "Fim da linha! O suspeito está trancado no esconderijo.";
+        } else {
+          document.getElementById("locais-grid").classList.remove("hidden");
+          document.getElementById("box-esconderijo-final").classList.add("hidden");
+          document.getElementById("txt-status-local").innerText = "Selecione um ponto de interesse para interrogar uma testemunha local:";
+        }
+
+        if(this.estado.horasRestantes <= 0) {
+          this.finalizarPartida(false, "O tempo limite expirou! O agente da KAOS-13 escapou e o caso foi arquivado.");
+        }
+      }
+
+      mudarTela(telaId) {
+        document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+        document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+        
+        document.getElementById(`view-${telaId}`).classList.add("active");
+        const btnNav = document.getElementById(`nav-${telaId}`);
+        if(btnNav) btnNav.classList.add("active");
+
+        if(telaId === "config") {
+          this.carregarCamposConfig();
+        }
+      }
+
+      abrirTestemunha(local, profissao) {
+        this.estado.testemunhaAtiva = profissao;
+        document.getElementById("box-chat-testemunha").classList.remove("hidden");
+        document.getElementById("lbl-nome-testemunha").innerText = `🗣️ Interrogando: ${profissao} no(a) ${local}`;
+        
+        const chatBox = document.getElementById("chat-messages");
+        chatBox.innerHTML = "";
+        
+        const msgIntro = document.createElement("div");
+        msgIntro.className = "msg system";
+        msgIntro.innerText = `[${profissao}]: Olá detetive, o que deseja saber? Eu vi um indivíduo estranho passando apressado por aqui mais cedo...`;
+        chatBox.appendChild(msgIntro);
+      }
+
+      async enviarPerguntaRapida(tipo) {
+        let textoPergunta = "Você sabe para onde aquela pessoa foi?";
+        if(tipo === "aparencia") textoPergunta = "Quais eram as características físicas do suspeito?";
+        
+        await this.executarChamadaIA(textoPergunta);
+      }
+
+      async enviarPerguntaLivre() {
+        const input = document.getElementById("input-chat-livre");
+        const prompt = input.value.trim();
+        if(!prompt) return;
+        
+        input.value = "";
+        await this.executarChamadaIA(prompt);
+      }
+
+      async executarChamadaIA(perguntaUsuario) {
+        if(this.estado.horasRestantes <= 0) return;
+        
+        const chatBox = document.getElementById("chat-messages");
+        
+        // Render user prompt
+        const divUser = document.createElement("div");
+        divUser.className = "msg user";
+        divUser.innerText = perguntaUsuario;
+        chatBox.appendChild(divUser);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        const loader = document.getElementById("chat-loading");
+        loader.classList.remove("hidden");
+
+        this.estado.horasRestantes -= 3; // Regra de negócio: 3h por inquirição
+        this.atualizarHUD();
+
+        const cidadeAtual = this.estado.rota[this.estado.indiceCidadeAtual];
+        const proximaCidade = this.estado.rota[this.estado.indiceCidadeAtual + 1] || cidadeAtual; // Se for o final, repete a cidade
+
+        // Envelopamento estruturado de dados locais para envio ao Worker
+        const payload = {
+          provedor: localStorage.getItem("cfg_provedor"),
+          apiEndpointCustom: localStorage.getItem("cfg_endpoint"),
+          perguntaJogador: perguntaUsuario,
+          variaveisJogo: {
+            cidadeAtualNome: cidadeAtual.nome,
+            cidadeAtualPais: cidadeAtual.pais,
+            testemunha: this.estado.testemunhaAtiva,
+            proximaCidadeNome: proximaCidade.nome,
+            caracteristicaSorteada: this.estado.caracteristicaSorteadaPorCidade[cidadeAtual.id],
+            pistas: {
+              moeda: proximaCidade.moeda,
+              pontos: proximaCidade.pontos_turisticos.join(", "),
+              culinaria: proximaCidade.culinaria,
+              fatos: proximaCidade.fatos_culturais ? proximaCidade.fatos_culturais.join(", ") : ""
+            }
+          }
+        };
+
+        try {
+          let respostaFinalText = "";
+          const token = localStorage.getItem("cfg_key") || "";
+
+          // Abordagem Híbrida: Roteamento de IA Local ou Edge Worker
+          if(payload.provedor === "ollama") {
+            const localEndpoint = payload.apiEndpointCustom || "http://localhost:11434";
+            
+            // Passo 1: Pede para o Cloudflare formatar as diretrizes do prompt de forma segura
+            const resFormater = await fetch(`${CFG_WORKER_URL}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            });
+            const schemaInst = await resFormater.json();
+            
+            // Passo 2: O PWA executa o fetch direto na rede interna (localhost) do usuário
+            const resOllama = await fetch(`${localEndpoint}/api/generate`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                model: "llama3",
+                prompt: `${schemaInst.systemInstruction}\n\nPergunta do usuário: ${schemaInst.perguntaJogador}`,
+                stream: false,
+                options: { num_predict: 120, temperature: 0.7 }
+              })
+            });
+            const dataOllama = await resOllama.json();
+            respostaFinalText = dataOllama.response;
+          } else {
+            // Execução remota padrão nos servidores Edge do Worker
+            const resWorker = await fetch(`${CFG_WORKER_URL}`, {
+              method: "POST",
+              headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify(payload)
+            });
+            const dataWorker = await resWorker.json();
+            if(dataWorker.error) throw new Error(dataWorker.error);
+            respostaFinalText = dataWorker.resposta;
+          }
+
+          const divSystem = document.createElement("div");
+          divSystem.className = "msg system";
+          divSystem.innerText = `[${this.estado.testemunhaAtiva}]: ${respostaFinalText}`;
+          chatBox.appendChild(divSystem);
+
+        } catch (err) {
+          console.error(err);
+          const divSystem = document.createElement("div");
+          divSystem.className = "msg system";
+          divSystem.innerText = "[Erro de Comunicação]: Detetive, a conexão de criptografia com a inteligência do local falhou. Verifique o Setup e a chave de API.";
+          chatBox.appendChild(divSystem);
+        } finally {
+          loader.classList.add("hidden");
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
+      }
+
+      gerarConexoesVoo() {
+        const grid = document.getElementById("conexoes-grid");
+        grid.innerHTML = "";
+        
+        const cidadeAtual = this.estado.rota[this.estado.indiceCidadeAtual];
+        const proximaCorreta = this.estado.rota[this.estado.indiceCidadeAtual + 1];
+        
+        let destinosDisponiveis = [];
+        if (proximaCorreta) {
+          destinosDisponiveis.push(proximaCorreta);
+        }
+        
+        // Preenche com falsas opções para criar o desafio geográfico
+        const cidadesFalsas = CIDADES.filter(c => c.id !== cidadeAtual.id && (!proximaCorreta || c.id !== proximaCorreta.id));
+        const falsasSorteadas = cidadesFalsas.sort(() => 0.5 - Math.random()).slice(0, 3);
+        destinosDisponiveis = destinosDisponiveis.concat(falsasSorteadas).sort(() => 0.5 - Math.random());
+
+        destinosDisponiveis.forEach(cidade => {
+          const btnVoo = document.createElement("div");
+          btnVoo.className = "item-select";
+          btnVoo.innerHTML = `✈️ Voo para:<br><strong>${cidade.nome}</strong><br><span style='font-size:0.75rem; color:var(--text-muted)'>${cidade.pais}</span>`;
+          btnVoo.onclick = () => this.viajar(cidade);
+          grid.appendChild(btnVoo);
+        });
+      }
+
+      viajar(cidadeDestino) {
+        this.estado.horasRestantes -= 8; // Regra de negócio: 8h por viagem aérea
+        document.getElementById("box-chat-testemunha").classList.add("hidden");
+        
+        const proximaCorreta = this.estado.rota[this.estado.indiceCidadeAtual + 1];
+        
+        if (proximaCorreta && cidadeDestino.id === proximaCorreta.id) {
+          // Avança na trilha correta
+          this.estado.indiceCidadeAtual++;
+        } else {
+          // Cidade errada: Penalidade aplicada. Permanece no índice atual, forçando o voo de volta
+          alert(`Você pousou em ${cidadeDestino.nome}. Ao investigar a pista, os moradores locais informam que nunca ouviram falar do suspeito. Você perdeu tempo de voo e precisa retornar para a rota.`);
+        }
+        
+        this.atualizarHUD();
+        this.gerarConexoesVoo();
+        this.mudarTela("investigar");
+      }
+
+      filtrarSuspeitos() {
+        const gen = document.getElementById("f-genero").value;
+        const cab = document.getElementById("f-cabelo").value;
+        const hob = document.getElementById("f-hobby").value;
+        const vei = document.getElementById("f-veiculo").value;
+        const ace = document.getElementById("f-acessorio").value;
+
+        const filtrados = SUSPEITOS.filter(s => {
+          if (gen && s.genero !== gen) return false;
+          if (cab && s.cabelo !== cab) return false;
+          if (hob && s.hobby !== hob) return false;
+          if (vei && s.veiculo !== vei) return false;
+          if (ace && s.acessorio !== ace) return false;
+          return true;
+        });
+
+        const lblInfo = document.getElementById("txt-resultado-filtro");
+        const btnEmitir = document.getElementById("btn-emitir-mandado");
+
+        if (filtrados.length === 1) {
+          const alvo = filtrados[0];
+          lblInfo.innerHTML = `🎯 Suspeito isolado: <strong style="color:var(--accent);">${alvo.codinome}</strong> (${alvo.cargo})`;
+          btnEmitir.removeAttribute("disabled");
+          btnEmitir.innerText = `Emitir Mandado para ${alvo.codinome}`;
+          btnEmitir.onclick = () => {
+            this.estado.mandadoEmitidoPara = alvo.codinome;
+            alert(`Mandado de Prisão Internacional emitido pela ACME contra ${alvo.codinome}!`);
+          };
+        } else {
+          lblInfo.innerText = `Resultados possíveis no banco de dados: ${filtrados.length}`;
+          btnEmitir.setAttribute("disabled", "true");
+          btnEmitir.innerText = "Emitir Mandado de Prisão";
+        }
+      }
+
+      executarPrisao() {
+        if (!this.estado.mandadoEmitidoPara) {
+          this.finalizarPartida(false, "Falha na Missão! Você encurralou o agente da KAOS-13, mas não tinha um mandado legalizado emitido no sistema. Ele usou a brecha técnica e fugiu de helicóptero!");
+          return;
+        }
+
+        if (this.estado.mandadoEmitidoPara === this.estado.suspeitoAlvo.codinome) {
+          this.finalizarPartida(true, `Excelente trabalho, Agente! Você prendeu com sucesso o meliante **${this.estado.suspeitoAlvo.codinome}** (${this.estado.suspeitoAlvo.nome_real}), que estava escondido a mando da organização KAOS-13. A Token SLP parabeniza seus esforços.`);
+        } else {
+          this.finalizarPartida(false, `Catástrofe Judiciária! Você efetuou a prisão portando um mandado contra o agente errado (${this.estado.mandadoEmitidoPara}). O verdadeiro culpado era o ${this.estado.suspeitoAlvo.codinome}, que aproveitou a confusão legal para escapar.`);
+        }
+      }
+
+      finalizarPartida(isVitoria, mensagemTexto) {
+        document.getElementById("game-timer").classList.add("hidden");
+        document.getElementById("app-nav").classList.add("hidden");
+        
+        const splash = document.getElementById("view-splash");
+        splash.querySelector("p").innerHTML = `<strong style="color:${isVitoria?'#22c55e':'#ef4444'}; font-size:1.1rem;">${isVitoria?'VITÓRIA':'FIM DE JOGO'}</strong><br><br>${mensagemTexto}`;
+        splash.querySelector("button").innerText = "Jogar Novamente";
+        this.mudarTela("splash");
+      }
+
+      ajustarCamposConfig() {
+        const prov = document.getElementById("cfg-provedor").value;
+        const boxKey = document.getElementById("box-cfg-key");
+        const boxUrl = document.getElementById("box-cfg-endpoint");
+
+        if(prov === "ollama") {
+          boxKey.classList.add("hidden");
+          boxUrl.classList.remove("hidden");
+          document.getElementById("cfg-endpoint").value = "http://localhost:11434";
+        } else if(prov === "inception") {
+          boxKey.classList.remove("hidden");
+          boxUrl.classList.remove("hidden");
+          document.getElementById("cfg-endpoint").value = "https://api.inception.ai/v1/chat/completions";
+        } else {
+          boxKey.classList.remove("hidden");
+          boxUrl.classList.add("hidden");
+        }
+      }
+
+      salvarConfig() {
+        const p = document.getElementById("cfg-provedor").value;
+        const k = document.getElementById("cfg-key").value;
+        const e = document.getElementById("cfg-endpoint").value;
+
+        localStorage.setItem("cfg_provedor", p);
+        localStorage.setItem("cfg_key", k);
+        localStorage.setItem("cfg_endpoint", e);
+        
+        alert("Configurações de IA criptografadas e salvas no localStorage!");
+        this.mudarTela("splash");
+      }
+
+      carregarCamposConfig() {
+        document.getElementById("cfg-provedor").value = localStorage.getItem("cfg_provedor") || "google";
+        document.getElementById("cfg-key").value = localStorage.getItem("cfg_key") || "";
+        document.getElementById("cfg-endpoint").value = localStorage.getItem("cfg_endpoint") || "";
+        this.ajustarCamposConfig();
+      }
+    }
+
+    const jogo = new EngineJogo();
+
+    // REGISTRO DO SERVICE WORKER (Atendimento a Requisitos de PWA)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.error("SW fail:", err));
+      });
+    }
+  </script>
+</body>
+</html>
