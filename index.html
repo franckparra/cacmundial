@@ -3,141 +3,731 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Caçada Mundial</title>
+  <title>Caçada Mundial - KAOS-13</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#0a0e1a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <style>
+    /* ===== VARIÁVEIS E RESET MODERNO ===== */
     :root {
-      --bg-main: #0f172a;
-      --bg-card: #1e293b;
-      --accent: #ef4444;
-      --accent-hover: #dc2626;
-      --text-main: #f8fafc;
+      --bg-main: #0a0e1a;
+      --bg-card: #141b2b;
+      --bg-card-hover: #1c2640;
+      --accent: #f97316;
+      --accent-hover: #ea580c;
+      --accent-glow: rgba(249, 115, 22, 0.25);
+      --text-main: #f1f5f9;
       --text-muted: #94a3b8;
-      --border: #334155;
+      --border: #1e2d45;
+      --border-glow: #f97316;
+      --radius: 12px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.6);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-    header { background-color: var(--bg-card); padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-    header h1 { font-size: 1.2rem; color: var(--text-main); font-weight: 700; }
-    .status-badge { background-color: #7f1d1d; color: #fca5a5; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; font-variant-numeric: tabular-nums; }
+    /* ===== SCROLLBAR PERSONALIZADA ===== */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg-main); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
 
-    main { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; position: relative; }
-    .view { display: none; height: 100%; }
+    /* ===== HEADER ===== */
+    header {
+      background: linear-gradient(135deg, #0a0e1a 0%, #141b2b 100%);
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      flex-shrink: 0;
+      backdrop-filter: blur(10px);
+    }
+    header h1 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #f97316, #fb923c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+    .status-badge {
+      background: #1a1a2e;
+      color: #fca5a5;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid #7f1d1d;
+      font-variant-numeric: tabular-nums;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+    }
+    .status-badge.warning {
+      border-color: #f97316;
+      color: #fb923c;
+      box-shadow: 0 0 20px rgba(249, 115, 22, 0.2);
+    }
+
+    /* ===== MAIN ===== */
+    main { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); position: relative; -webkit-overflow-scrolling: touch; }
+    .view { display: none; height: 100%; animation: fadeIn 0.3s ease; }
     .view.active { display: flex; flex-direction: column; }
 
-    /* Cards e Elementos */
-    .card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 15px; }
-    .btn { background-color: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; text-align: center; text-decoration: none; display: inline-block; }
-    .btn:hover { background-color: var(--accent-hover); }
-    .btn-secondary { background-color: #334155; border: 1px solid var(--border); }
-    .btn-secondary:hover { background-color: #475569; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Grid de Locais e Viagem */
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-    .item-select { background-color: #1e293b; border: 1px solid var(--border); border-radius: 6px; padding: 15px; text-align: center; cursor: pointer; font-weight: 500; transition: border-color 0.2s; }
-    .item-select:hover { border-color: var(--accent); }
+    /* ===== CARDS ===== */
+    .card {
+      background: linear-gradient(145deg, var(--bg-card), #101826);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+    }
+    .card:hover { border-color: var(--border-glow); }
 
-    /* Chat UI */
-    .chat-container { display: flex; flex-direction: column; height: 100%; max-height: 400px; min-height: 280px; background: #0b1329; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; margin-top: 10px; }
-    .chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-    .msg { max-width: 85%; padding: 10px; border-radius: 8px; font-size: 0.95rem; line-height: 1.4; }
-    .msg.system { background: #334155; align-self: flex-start; }
-    .msg.user { background: #0284c7; align-self: flex-end; }
-    .msg.erro { background: #7f1d1d; align-self: flex-start; }
-    .chat-chips { display: flex; gap: 6px; overflow-x: auto; padding: 10px; background: var(--bg-card); border-top: 1px solid var(--border); white-space: nowrap; }
-    .chip { background: #334155; border: 1px solid var(--border); color: white; padding: 8px 12px; border-radius: 16px; font-size: 0.85rem; cursor: pointer; }
-    .chip:hover { background: #475569; }
-    .chat-input-area { display: flex; border-top: 1px solid var(--border); background: var(--bg-card); }
-    .chat-input-area input { flex: 1; background: transparent; border: none; padding: 12px; color: white; font-size: 0.95rem; }
-    .chat-input-area input:focus { outline: none; }
+    .card-glow {
+      border-color: var(--accent);
+      box-shadow: 0 0 30px var(--accent-glow);
+    }
 
-    /* Filtros Mandado */
-    .filter-group { margin-bottom: 12px; }
-    .filter-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; }
-    .filter-group select, .filter-group input { width: 100%; background: #0f172a; border: 1px solid var(--border); padding: 10px; color: white; border-radius: 6px; font-size: 1rem; }
-    .filter-group small { display: block; color: var(--text-muted); font-size: 0.75rem; margin-top: 4px; }
+    /* ===== BOTÕES ===== */
+    .btn {
+      background: linear-gradient(135deg, var(--accent), #ea580c);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+      letter-spacing: 0.3px;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(249, 115, 22, 0.4); }
+    .btn:active { transform: translateY(0); }
+    .btn-secondary {
+      background: linear-gradient(135deg, #1e2d45, #2a3d5a);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .btn-secondary:hover { background: linear-gradient(135deg, #2a3d5a, #3a4d6a); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
-    /* Bottom Navigation */
-    nav { position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--bg-card); border-top: 1px solid var(--border); display: flex; justify-content: space-around; z-index: 100; }
-    nav button { flex: 1; background: none; border: none; color: var(--text-muted); padding: 12px 5px; font-size: 0.8rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    nav button.active { color: var(--accent); font-weight: bold; }
-    nav button svg { width: 20px; height: 20px; fill: currentColor; }
+    .btn-success {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+    }
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
 
-    /* Footer Institucional */
-    footer { text-align: center; font-size: 0.75rem; color: var(--text-muted); padding: 10px 0; margin-top: auto; }
-    footer a { color: var(--text-muted); text-decoration: none; font-weight: 600; }
+    /* ===== TELA SPLASH ===== */
+    #view-splash {
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+    #view-splash .logo {
+      font-size: 4rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+    #view-splash h2 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #f97316, #fb923c, #f97316);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+      letter-spacing: -1px;
+    }
+    #view-splash .subtitle {
+      color: var(--text-muted);
+      max-width: 420px;
+      margin: 0 auto 30px;
+      line-height: 1.6;
+      font-size: 1rem;
+    }
+    #view-splash .btn { font-size: 1.1rem; padding: 14px 40px; }
 
-    .loader { border: 3px solid #334155; border-top: 3px solid var(--accent); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
+    /* ===== GRID DE LOCAIS ===== */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    @media (max-width: 500px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .item-select {
+      background: linear-gradient(145deg, var(--bg-card), #101826);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 12px;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition);
+      color: var(--text-main);
+      font-size: 0.95rem;
+    }
+    .item-select:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(249, 115, 22, 0.15);
+    }
+    .item-select:active { transform: translateY(0); }
+    .item-select .emoji { font-size: 1.6rem; display: block; margin-bottom: 4px; }
+
+    /* ===== CHAT UI ===== */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-height: 420px;
+      min-height: 300px;
+      background: #080c18;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      margin-top: 0;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .msg {
+      max-width: 88%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      animation: fadeIn 0.3s ease;
+      word-wrap: break-word;
+    }
+    .msg.system {
+      background: linear-gradient(135deg, #1a2740, #141b2b);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+      border-left: 3px solid var(--accent);
+    }
+    .msg.user {
+      background: linear-gradient(135deg, #1a3a5c, #0f2840);
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+      border-right: 3px solid #0ea5e9;
+    }
+    .msg.erro {
+      background: linear-gradient(135deg, #3d0a0a, #1a0a0a);
+      align-self: flex-start;
+      border-left: 3px solid #ef4444;
+      color: #fca5a5;
+    }
+    .msg.success {
+      background: linear-gradient(135deg, #0a2a1a, #0a1a0a);
+      align-self: flex-start;
+      border-left: 3px solid #22c55e;
+      color: #86efac;
+    }
+
+    .chat-chips {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 10px 14px;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .chip {
+      background: var(--bg-main);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .chip:hover {
+      border-color: var(--accent);
+      background: var(--bg-card-hover);
+      transform: translateY(-1px);
+    }
+    .chat-input-area {
+      display: flex;
+      border-top: 1px solid var(--border);
+      background: var(--bg-card);
+      flex-shrink: 0;
+    }
+    .chat-input-area input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 14px 16px;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+      min-width: 0;
+    }
+    .chat-input-area input::placeholder { color: var(--text-muted); }
+    .chat-input-area .btn {
+      border-radius: 0;
+      padding: 0 20px;
+      flex-shrink: 0;
+    }
+
+    .loader {
+      border: 3px solid #1e2d45;
+      border-top: 3px solid var(--accent);
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .hidden { display: none !important; }
+
+    /* ===== DOSSIE / GALERIA ===== */
+    .dossie-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 12px;
+      padding-bottom: 12px;
+    }
+    .dossie-card {
+      display: flex;
+      gap: 14px;
+      background: linear-gradient(145deg, var(--bg-card), #101826);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .dossie-card:hover {
+      border-color: var(--accent);
+      transform: translateX(4px);
+      box-shadow: 0 4px 20px rgba(249, 115, 22, 0.1);
+    }
+    .dossie-foto-wrap {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      flex-shrink: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #0a0e1a;
+      border: 2px solid var(--border);
+    }
+    .dossie-foto-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .dossie-foto-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      background: #0a0e1a;
+    }
+    .dossie-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+    .dossie-nome {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--text-main);
+    }
+    .dossie-cargo {
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .dossie-tracos {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 8px;
+      margin-top: 4px;
+    }
+    .dossie-traco {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      background: #0a0e1a;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 8px;
+    }
+    .dossie-traco strong { color: var(--text-main); }
+
+    /* ===== FICHA DETALHADA (MODAL) ===== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      animation: fadeIn 0.3s ease;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+      background: linear-gradient(145deg, var(--bg-card), #0a0e1a);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      max-width: 480px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      animation: slideUp 0.3s ease;
+      position: relative;
+    }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .modal-close:hover { color: var(--text-main); transform: rotate(90deg); }
+
+    .modal-foto {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin: 0 auto 16px;
+      border: 3px solid var(--accent);
+      box-shadow: 0 0 30px var(--accent-glow);
+    }
+    .modal-foto img { width: 100%; height: 100%; object-fit: cover; }
+    .modal-foto .fallback {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.5rem;
+      background: #0a0e1a;
+    }
+    .modal-nome {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+    .modal-cargo {
+      text-align: center;
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+    }
+    .modal-crime {
+      text-align: center;
+      background: #1a0a0a;
+      border: 1px solid #7f1d1d;
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #fca5a5;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+    }
+    .modal-detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 16px;
+      margin: 12px 0;
+    }
+    .modal-detail-grid .label { color: var(--text-muted); font-size: 0.8rem; }
+    .modal-detail-grid .value { color: var(--text-main); font-weight: 500; font-size: 0.9rem; }
+
+    .modal-historia {
+      margin-top: 16px;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+    }
+    .modal-historia h4 {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .modal-historia ul {
+      list-style: none;
+      padding: 0;
+    }
+    .modal-historia li {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-historia li::before {
+      content: "⚡";
+      color: var(--accent);
+      font-size: 0.7rem;
+    }
+    .modal-historia li .data { color: var(--text-muted); font-size: 0.7rem; margin-left: auto; }
+
+    .modal-badge-preso {
+      display: inline-block;
+      background: #22c55e;
+      color: #0a0e1a;
+      font-weight: 800;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== FILTROS MANDADO ===== */
+    .filter-group { margin-bottom: 14px; }
+    .filter-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .filter-group select, .filter-group input {
+      width: 100%;
+      background: #0a0e1a;
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      color: var(--text-main);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      transition: var(--transition);
+      appearance: none;
+    }
+    .filter-group select:focus, .filter-group input:focus {
+      border-color: var(--accent);
+      outline: none;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .filter-group small {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      margin-top: 4px;
+    }
+
+    /* ===== BOTTOM NAV ===== */
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, #0a0e1a, #141b2b);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      backdrop-filter: blur(10px);
+    }
+    nav button {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 4px 8px;
+      font-size: 0.7rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      transition: var(--transition);
+      position: relative;
+    }
+    nav button.active {
+      color: var(--accent);
+      font-weight: 700;
+    }
+    nav button.active::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 30%;
+      right: 30%;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 0 0 4px 4px;
+    }
+    nav button svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+    }
+    nav button:hover { color: var(--text-main); }
+
+    /* ===== FOOTER ===== */
+    footer {
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      padding: 16px 0 8px;
+      margin-top: auto;
+    }
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+    footer a:hover { color: #fb923c; }
+
+    /* ===== RESPONSIVIDADE ===== */
+    @media (max-width: 480px) {
+      header h1 { font-size: 1rem; }
+      .status-badge { font-size: 0.7rem; padding: 4px 10px; }
+      main { padding: 12px; padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px)); }
+      .card { padding: 14px; }
+      .dossie-foto-wrap { width: 64px; height: 64px; }
+      .modal-content { padding: 18px; }
+      .modal-foto { width: 90px; height: 90px; }
+      .grid { gap: 8px; }
+      .item-select { padding: 12px 8px; font-size: 0.85rem; }
+      .chat-container { max-height: 340px; min-height: 240px; }
+      .msg { font-size: 0.85rem; padding: 10px 14px; }
+      .modal-detail-grid { grid-template-columns: 1fr; }
+      #view-splash h2 { font-size: 1.8rem; }
+      nav button { font-size: 0.6rem; padding: 8px 2px 6px; }
+      nav button svg { width: 18px; height: 18px; }
+    }
+    @media (max-width: 380px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    /* ===== ANIMAÇÕES ADICIONAIS ===== */
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 20px var(--accent-glow); }
+      50% { box-shadow: 0 0 40px var(--accent-glow), 0 0 60px rgba(249, 115, 22, 0.1); }
+    }
+    .glow-text {
+      text-shadow: 0 0 30px var(--accent-glow);
+    }
+
+    /* ===== BADGE DE PERIGO ===== */
+    .danger-badge {
+      background: #7f1d1d;
+      color: #fca5a5;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      display: inline-block;
+    }
   </style>
 </head>
 <body>
 
   <header>
-    <h1 id="app-title">Caçada Mundial</h1>
-    <div id="game-timer" class="status-badge hidden">⏳ 72h restantes</div>
+    <h1>⚡ CAÇADA MUNDIAL</h1>
+    <div id="game-timer" class="status-badge hidden">⏳ 72h</div>
   </header>
 
   <main>
-    <!-- TELA INICIAL (SPLASH) -->
-    <div id="view-splash" class="view active" style="justify-content: center; text-align: center;">
-      <div style="margin-bottom: 30px;">
-        <h2 style="font-size: 2.2rem; margin-bottom: 10px; color: var(--accent);">KAOS-13 EM AÇÃO</h2>
-        <p style="color: var(--text-muted); max-width: 400px; margin: 0 auto;">A agência de terrorismo internacional KAOS-13 está roubando patrimônios pelo mundo. Encontre as pistas, emita o mandado e capture o agente antes que o tempo acabe.</p>
-      </div>
-      <button class="btn" onclick="jogo.iniciarCaso()" style="align-self: center;">Iniciar Nova Investigação</button>
+    <!-- TELA SPLASH -->
+    <div id="view-splash" class="view active">
+      <span class="logo">🌍</span>
+      <h2>KAOS-13</h2>
+      <p class="subtitle">
+        A agência terrorista internacional KAOS-13 está roubando patrimônios pelo mundo.<br>
+        Encontre pistas, emita o mandado e capture o agente antes que o tempo acabe.
+      </p>
+      <button class="btn" onclick="jogo.iniciarCaso()">🔍 Iniciar Investigação</button>
       <footer>Desenvolvido por <a href="https://tokenslp.com.br" target="_blank">Token SLP</a></footer>
     </div>
 
     <!-- TELA INVESTIGAR -->
     <div id="view-investigar" class="view">
       <div class="card">
-        <h3 id="txt-cidade-local">Rio de Janeiro</h3>
-        <p id="txt-status-local" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">Selecione um ponto de interesse para interrogar uma testemunha local:</p>
+        <h3 id="txt-cidade-local">📍 Rio de Janeiro</h3>
+        <p id="txt-status-local" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">Selecione um ponto para interrogar uma testemunha:</p>
       </div>
 
       <div id="locais-grid" class="grid">
-        <div class="item-select" onclick="jogo.abrirTestemunha('Aeroporto', 'Recepcionista do Portão de Embarque')">🏢 Aeroporto</div>
-        <div class="item-select" onclick="jogo.abrirTestemunha('Hotel Grande', 'Gerente do Saguão')">🏨 Hotel</div>
-        <div class="item-select" onclick="jogo.abrirTestemunha('Mercado Central', 'Comerciante de Especiarias')">🏛️ Mercado Central</div>
+        <div class="item-select" onclick="jogo.abrirTestemunha('Aeroporto', 'Recepcionista')"><span class="emoji">✈️</span>Aeroporto</div>
+        <div class="item-select" onclick="jogo.abrirTestemunha('Hotel', 'Gerente')"><span class="emoji">🏨</span>Hotel</div>
+        <div class="item-select" onclick="jogo.abrirTestemunha('Mercado', 'Comerciante')"><span class="emoji">🏛️</span>Mercado</div>
       </div>
 
       <div id="box-chat-testemunha" class="hidden">
-        <div class="card" style="margin-top: 15px; margin-bottom: 0; padding: 10px; background: #111827; border-bottom: none; border-bottom-left-radius: 0; border-bottom-right-radius: 0;">
-          <strong id="lbl-nome-testemunha">Testemunha</strong>
+        <div class="card" style="margin-top: 12px; margin-bottom: 0; padding: 12px 16px; background: #0a0e1a; border-bottom: none; border-radius: var(--radius) var(--radius) 0 0;">
+          <strong id="lbl-nome-testemunha">🗣️ Testemunha</strong>
         </div>
         <div class="chat-container">
           <div id="chat-messages" class="chat-messages"></div>
-          <div id="chat-loading" class="padding hidden" style="padding:10px; font-size:0.85rem; color:var(--text-muted);"><span class="loader"></span>Inquirindo testemunha...</div>
+          <div id="chat-loading" class="hidden" style="padding:10px 14px; font-size:0.85rem; color:var(--text-muted); background:var(--bg-card); border-top:1px solid var(--border);">
+            <span class="loader"></span>Inquirindo testemunha...
+          </div>
           <div class="chat-chips">
             <button class="chip" onclick="jogo.enviarPerguntaRapida('paradeiro')">💼 Para onde fugiu?</button>
-            <button class="chip" onclick="jogo.enviarPerguntaRapida('aparencia')">🕵️‍♂️ Como era o suspeito?</button>
+            <button class="chip" onclick="jogo.enviarPerguntaRapida('aparencia')">🕵️ Como era?</button>
+            <button class="chip" onclick="jogo.enviarPerguntaRapida('crime')">🔪 Qual o crime?</button>
           </div>
           <div class="chat-input-area">
-            <input type="text" id="input-chat-livre" placeholder="Digite uma pergunta customizada..." onkeypress="if(event.key === 'Enter') jogo.enviarPerguntaLivre()">
-            <button class="btn" onclick="jogo.enviarPerguntaLivre()" style="border-radius:0; padding: 0 15px;">Ir</button>
+            <input type="text" id="input-chat-livre" placeholder="Digite sua pergunta..." onkeypress="if(event.key === 'Enter') jogo.enviarPerguntaLivre()">
+            <button class="btn" onclick="jogo.enviarPerguntaLivre()">Enviar</button>
           </div>
         </div>
       </div>
 
-      <!-- Box Esconderijo Final condicional -->
-      <div id="box-esconderijo-final" class="card hidden" style="margin-top: 15px; border-color: var(--accent); text-align: center;">
-        <h3 style="color: var(--accent);">🚨 LOCAL DE ESCONDERIJO DETECTADO</h3>
-        <p style="font-size:0.9rem; margin: 8px 0;" id="txt-aviso-final">O suspeito está encurralado nesta cidade! Certifique-se de ter o mandado correto.</p>
-        <button class="btn" onclick="jogo.executarPrisao()">Executar Prisão</button>
+      <div id="box-esconderijo-final" class="card hidden card-glow" style="margin-top: 16px; text-align: center;">
+        <h3 style="color: var(--accent);">🚨 LOCAL DO ESCONDERIJO</h3>
+        <p style="font-size:0.9rem; margin: 8px 0;" id="txt-aviso-final">O suspeito está encurralado! Certifique-se de ter o mandado correto.</p>
+        <button class="btn btn-danger" onclick="jogo.executarPrisao()">⛓️ Executar Prisão</button>
       </div>
     </div>
 
     <!-- TELA VIAJAR -->
     <div id="view-viajar" class="view">
       <div class="card">
-        <h3>Painel de Voo da INTERPOL</h3>
-        <p style="color: var(--text-muted); font-size: 0.9rem;">Escolha o próximo destino. Voos consomem 8 horas virtuais.</p>
+        <h3>✈️ Painel de Voo</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Escolha o próximo destino. Cada voo consome 8 horas.</p>
       </div>
       <div id="conexoes-grid" class="grid"></div>
     </div>
@@ -145,8 +735,9 @@
     <!-- TELA MANDADO -->
     <div id="view-mandado" class="view">
       <div class="card">
-        <h3>Banco de Dados de Criminosos</h3>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px;">Preencha os dados coletados para rastrear o agente no sistema da polícia.</p>
+        <h3>📋 Banco de Dados</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 12px;">Filtre as características para identificar o agente.</p>
+        <button class="btn btn-secondary" style="width:100%; margin-bottom: 12px;" onclick="jogo.mudarTela('galeria')">📁 Ver Fichas de Suspeitos</button>
 
         <div class="filter-group">
           <label>Gênero</label>
@@ -157,30 +748,44 @@
           <select id="f-cabelo" onchange="jogo.filtrarSuspeitos()"><option value="">Qualquer</option><option value="Preto">Preto</option><option value="Loiro">Loiro</option><option value="Ruivo">Ruivo</option><option value="Castanho">Castanho</option><option value="Grisalho">Grisalho</option></select>
         </div>
         <div class="filter-group">
-          <label>Hobby Conhecido</label>
+          <label>Hobby</label>
           <select id="f-hobby" onchange="jogo.filtrarSuspeitos()"><option value="">Qualquer</option><option value="Xadrez">Xadrez</option><option value="Poker">Poker</option><option value="Robótica">Robótica</option><option value="Escultura">Escultura</option><option value="Escalada">Escalada</option><option value="Culinária">Culinária</option></select>
         </div>
         <div class="filter-group">
-          <label>Veículo Avistado</label>
+          <label>Veículo</label>
           <select id="f-veiculo" onchange="jogo.filtrarSuspeitos()"><option value="">Qualquer</option><option value="SUV Blindado">SUV Blindado</option><option value="Moto Esportiva">Moto Esportiva</option><option value="Carro Elétrico">Carro Elétrico</option><option value="Helicóptero">Helicóptero</option><option value="Patinete Elétrico">Patinete Elétrico</option></select>
         </div>
         <div class="filter-group">
-          <label>Acessório Marcante</label>
+          <label>Acessório</label>
           <select id="f-acessorio" onchange="jogo.filtrarSuspeitos()"><option value="">Qualquer</option><option value="Luva de Couro">Luva de Couro</option><option value="Tatuagem de Aranha">Tatuagem de Aranha</option><option value="Óculos Escuros">Óculos Escuros</option><option value="Relógio de Ouro">Relógio de Ouro</option><option value="Cicatriz">Cicatriz</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Nível de Periculosidade</label>
+          <select id="f-perigo" onchange="jogo.filtrarSuspeitos()"><option value="">Qualquer</option><option value="Alto">Alto</option><option value="Médio">Médio</option><option value="Baixo">Baixo</option></select>
         </div>
       </div>
 
       <div class="card" id="box-resultado-mandado">
-        <p style="font-weight: bold; text-align: center;" id="txt-resultado-filtro">Resultados encontrados: 13</p>
-        <button class="btn" id="btn-emitir-mandado" disabled style="width: 100%; margin-top: 10px;">Emitir Mandado de Prisão</button>
+        <p style="font-weight: 700; text-align: center; font-size: 1.05rem;" id="txt-resultado-filtro">🔍 Resultados: 13</p>
+        <button class="btn" id="btn-emitir-mandado" disabled style="width: 100%; margin-top: 10px;">Emitir Mandado</button>
       </div>
     </div>
 
-    <!-- TELA CONFIGURAÇÃO -->
+    <!-- TELA GALERIA -->
+    <div id="view-galeria" class="view">
+      <div class="card">
+        <h3>📁 Fichas de Suspeitos</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px;">Clique em um suspeito para ver o dossiê completo.</p>
+        <button class="btn btn-secondary" style="width:100%;" onclick="jogo.mudarTela('mandado')">← Voltar</button>
+      </div>
+      <div id="galeria-grid" class="dossie-grid"></div>
+    </div>
+
+    <!-- TELA CONFIG -->
     <div id="view-config" class="view">
       <div class="card">
-        <h3>Configuração de Inteligência Artificial</h3>
-        <p style="color: var(--text-muted); font-size:0.85rem; margin-bottom: 15px;">Os dados trafegam pela Edge da Cloudflare diretamente para o provedor sem armazenamento centralizado.</p>
+        <h3>⚙️ Configuração de IA</h3>
+        <p style="color: var(--text-muted); font-size:0.85rem; margin-bottom: 16px;">Dados trafegam pela Edge da Cloudflare. Configure seu provedor preferido.</p>
 
         <div class="filter-group">
           <label>Provedor de IA</label>
@@ -188,33 +793,33 @@
             <option value="google">Google Gemini</option>
             <option value="openrouter">OpenRouter</option>
             <option value="nvidia">Nvidia NIM</option>
-            <option value="inception">Inception AI</option>
-            <option value="ollama">Ollama (Local / Localhost)</option>
+            <option value="inception">Inception AI (mercury-2)</option>
+            <option value="ollama">Ollama (Local)</option>
           </select>
         </div>
 
         <div class="filter-group">
           <label>Modelo</label>
-          <input type="text" id="cfg-modelo" placeholder="modelo">
-          <small id="txt-modelo-padrao">Deixe em branco para usar o padrão.</small>
+          <input type="text" id="cfg-modelo" placeholder="Deixe em branco para padrão">
+          <small id="txt-modelo-padrao">Padrão será usado se vazio.</small>
         </div>
 
         <div class="filter-group" id="box-cfg-key">
-          <label>Chave de API (API Key)</label>
-          <input type="password" id="cfg-key">
+          <label>🔑 Chave de API</label>
+          <input type="password" id="cfg-key" placeholder="Sua API Key">
         </div>
 
         <div class="filter-group hidden" id="box-cfg-endpoint">
-          <label>Endpoint Customizado / Local URL</label>
+          <label>🌐 Endpoint Customizado</label>
           <input type="text" id="cfg-endpoint" placeholder="http://localhost:11434">
         </div>
 
-        <button class="btn" onclick="jogo.salvarConfig()" style="width:100%; margin-top:10px;">Salvar Configurações</button>
+        <button class="btn" onclick="jogo.salvarConfig()" style="width:100%; margin-top:8px;">💾 Salvar Configurações</button>
       </div>
     </div>
   </main>
 
-  <!-- BOTTOM NAVIGATION BAR -->
+  <!-- BOTTOM NAV -->
   <nav id="app-nav" class="hidden">
     <button id="nav-investigar" class="active" onclick="jogo.mudarTela('investigar')">
       <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
@@ -230,57 +835,356 @@
     </button>
     <button id="nav-config" onclick="jogo.mudarTela('config')">
       <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-      Setup IA
+      Setup
     </button>
   </nav>
 
+  <!-- MODAL DE FICHA DETALHADA -->
+  <div class="modal-overlay" id="modal-dossie">
+    <div class="modal-content">
+      <button class="modal-close" onclick="jogo.fecharModal()">✕</button>
+      <div class="modal-foto">
+        <img id="modal-foto-img" src="" alt="Suspeito" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="fallback" style="display:none;">🕵️</div>
+      </div>
+      <div class="modal-nome" id="modal-nome">—</div>
+      <div class="modal-cargo" id="modal-cargo">—</div>
+      <div class="modal-crime" id="modal-crime">🔪 Crime: —</div>
+      <div id="modal-preso-badge" class="hidden" style="text-align:center; margin-bottom:12px;">
+        <span class="modal-badge-preso">⛓️ PRESO</span>
+      </div>
+      <div class="modal-detail-grid" id="modal-detalhes">
+        <span class="label">Gênero</span><span class="value" id="d-genero">—</span>
+        <span class="label">Cabelo</span><span class="value" id="d-cabelo">—</span>
+        <span class="label">Hobby</span><span class="value" id="d-hobby">—</span>
+        <span class="label">Veículo</span><span class="value" id="d-veiculo">—</span>
+        <span class="label">Acessório</span><span class="value" id="d-acessorio">—</span>
+        <span class="label">Periculosidade</span><span class="value" id="d-perigo">—</span>
+      </div>
+      <div class="modal-historia">
+        <h4>📜 Histórico Criminal (7 crimes)</h4>
+        <ul id="modal-historia-lista"></ul>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // DATA VECTORS (Injetados localmente conforme especificação ERS)
+    // ============================================================
+    // 1. DADOS - SUSPEITOS COM 7 CRIMES E PERICULOSIDADE
+    // ============================================================
     const SUSPEITOS = [
-      { codinome: "Nine Finger", nome_real: "Desconhecido", cargo: "Líder Supremo", genero: "Masculino", cabelo: "Grisalho", hobby: "Xadrez", veiculo: "SUV Blindado", acessorio: "Luva de Couro" },
-      { codinome: "Viper", nome_real: "Elena Rostova", cargo: "Infiltração", genero: "Feminino", cabelo: "Preto", hobby: "Poker", veiculo: "Moto Esportiva", acessorio: "Tatuagem de Aranha" },
-      { codinome: "Cortex", nome_real: "Arthur Pendelton", cargo: "Ciber-Terrorista", genero: "Masculino", cabelo: "Loiro", hobby: "Robótica", veiculo: "Carro Elétrico", acessorio: "Óculos Escuros" },
-      { codinome: "Madame Mirage", nome_real: "Chantal Dubois", cargo: "Contrabandista", genero: "Feminino", cabelo: "Ruivo", hobby: "Escultura", veiculo: "Helicóptero", acessorio: "Relógio de Ouro" },
-      { codinome: "Phantom", nome_real: "Alexei Volkov", cargo: "Força Bruta", genero: "Masculino", cabelo: "Preto", hobby: "Escalada", veiculo: "SUV Blindado", acessorio: "Cicatriz" },
-      { codinome: "Glitch", nome_real: "Morgan Vance", cargo: "Sabotador", genero: "Não-Binário", cabelo: "Ruivo", hobby: "Robótica", veiculo: "Patinete Elétrico", acessorio: "Óculos Escuros" },
-      { codinome: "Alquimista", nome_real: "Dr. Hugo Fischer", cargo: "Químico", genero: "Masculino", cabelo: "Grisalho", hobby: "Culinária", veiculo: "Carro Elétrico", acessorio: "Cicatriz" },
-      { codinome: "Siren", nome_real: "Naomi Tanaka", cargo: "Disfarces", genero: "Feminino", cabelo: "Castanho", hobby: "Poker", veiculo: "Moto Esportiva", acessorio: "Relógio de Ouro" },
-      { codinome: "Monarca", nome_real: "Stefano Moretti", cargo: "Financiador", genero: "Masculino", cabelo: "Castanho", hobby: "Xadrez", veiculo: "Helicóptero", acessorio: "Relógio de Ouro" },
-      { codinome: "Specter", nome_real: "Klaus Berger", cargo: "Espião", genero: "Masculino", cabelo: "Loiro", hobby: "Escalada", veiculo: "Moto Esportiva", acessorio: "Luva de Couro" },
-      { codinome: "Nebula", nome_real: "Iris Thorne", cargo: "Logística", genero: "Feminino", cabelo: "Loiro", hobby: "Escultura", veiculo: "Carro Elétrico", acessorio: "Tatuagem de Aranha" },
-      { codinome: "Apex", nome_real: "Marcus Vance", cargo: "Piloto de Fuga", genero: "Masculino", cabelo: "Ruivo", hobby: "Poker", veiculo: "Moto Esportiva", acessorio: "Óculos Escuros" },
-      { codinome: "Echo", nome_real: "Rin Sato", cargo: "Escuta/Radar", genero: "Não-Binário", cabelo: "Castanho", hobby: "Culinária", veiculo: "Patinete Elétrico", acessorio: "Tatuagem de Aranha" }
+      {
+        codinome: "Nine Finger",
+        nome_real: "Victor Kane",
+        cargo: "Líder Supremo",
+        genero: "Masculino",
+        cabelo: "Grisalho",
+        hobby: "Xadrez",
+        veiculo: "SUV Blindado",
+        acessorio: "Luva de Couro",
+        perigo: "Alto",
+        crime: "Terrorismo internacional, assassinato de 12 agentes",
+        historico: [
+          "2024-01: Atentado ao Banco Central de Londres",
+          "2023-09: Assassinato do embaixador francês",
+          "2023-05: Roubo de dados da OTAN",
+          "2022-11: Incêndio criminoso em arquivo nacional",
+          "2022-07: Extorsão de 50M de euros",
+          "2021-12: Tráfico de armas nucleares",
+          "2021-08: Planejamento de ataque cibernético global"
+        ]
+      },
+      {
+        codinome: "Viper",
+        nome_real: "Elena Rostova",
+        cargo: "Infiltração",
+        genero: "Feminino",
+        cabelo: "Preto",
+        hobby: "Poker",
+        veiculo: "Moto Esportiva",
+        acessorio: "Tatuagem de Aranha",
+        perigo: "Médio",
+        crime: "Espionagem industrial, assassinato de 5 agentes",
+        historico: [
+          "2024-02: Roubo de segredos da SpaceX",
+          "2023-10: Infiltração na CIA",
+          "2023-06: Assassinato de cientista nuclear",
+          "2022-12: Sabotagem de satélite",
+          "2022-08: Roubo de documentos diplomáticos",
+          "2022-04: Extorsão de empresa de tecnologia",
+          "2021-11: Vazamento de dados bancários"
+        ]
+      },
+      {
+        codinome: "Cortex",
+        nome_real: "Arthur Pendelton",
+        cargo: "Ciber-Terrorista",
+        genero: "Masculino",
+        cabelo: "Loiro",
+        hobby: "Robótica",
+        veiculo: "Carro Elétrico",
+        acessorio: "Óculos Escuros",
+        perigo: "Alto",
+        crime: "Ataques cibernéticos a infraestrutura crítica",
+        historico: [
+          "2024-03: Hackeamento do sistema elétrico europeu",
+          "2023-11: Invasão ao Pentágono",
+          "2023-07: Ransomware em hospitais",
+          "2023-02: Sabotagem de reator nuclear",
+          "2022-10: Roubo de dados de 100M de usuários",
+          "2022-06: Ataque ao sistema bancário suíço",
+          "2022-01: Criação de botnet global"
+        ]
+      },
+      {
+        codinome: "Madame Mirage",
+        nome_real: "Chantal Dubois",
+        cargo: "Contrabandista",
+        genero: "Feminino",
+        cabelo: "Ruivo",
+        hobby: "Escultura",
+        veiculo: "Helicóptero",
+        acessorio: "Relógio de Ouro",
+        perigo: "Médio",
+        crime: "Tráfico de obras de arte e antiguidades",
+        historico: [
+          "2024-01: Roubo da Mona Lisa falsa",
+          "2023-08: Contrabando de diamantes",
+          "2023-04: Assassinato de colecionador",
+          "2022-12: Roubo de relíquias egípcias",
+          "2022-09: Falsificação de obras de arte",
+          "2022-05: Tráfico de ouro ilegal",
+          "2021-10: Extorsão de museu de Paris"
+        ]
+      },
+      {
+        codinome: "Phantom",
+        nome_real: "Alexei Volkov",
+        cargo: "Força Bruta",
+        genero: "Masculino",
+        cabelo: "Preto",
+        hobby: "Escalada",
+        veiculo: "SUV Blindado",
+        acessorio: "Cicatriz",
+        perigo: "Alto",
+        crime: "Assassinatos em massa, terrorismo físico",
+        historico: [
+          "2024-02: Atentado a metrô de Moscou",
+          "2023-09: Assassinato de 4 juízes",
+          "2023-05: Roubo de banco com reféns",
+          "2023-01: Incêndio em delegacia",
+          "2022-10: Assassinato de político",
+          "2022-06: Atentado a shopping center",
+          "2021-12: Execução de traidores"
+        ]
+      },
+      {
+        codinome: "Glitch",
+        nome_real: "Morgan Vance",
+        cargo: "Sabotador",
+        genero: "Não-Binário",
+        cabelo: "Ruivo",
+        hobby: "Robótica",
+        veiculo: "Patinete Elétrico",
+        acessorio: "Óculos Escuros",
+        perigo: "Médio",
+        crime: "Sabotagem de sistemas de segurança",
+        historico: [
+          "2024-03: Desligamento de segurança de aeroporto",
+          "2023-12: Invasão ao sistema da Interpol",
+          "2023-08: Sabotagem de trem-bala",
+          "2023-04: Roubo de dados de seguros",
+          "2022-11: Manipulação de câmeras de segurança",
+          "2022-07: Desativação de alarme de museu",
+          "2022-03: Vazamento de dados policiais"
+        ]
+      },
+      {
+        codinome: "Alquimista",
+        nome_real: "Dr. Hugo Fischer",
+        cargo: "Químico",
+        genero: "Masculino",
+        cabelo: "Grisalho",
+        hobby: "Culinária",
+        veiculo: "Carro Elétrico",
+        acessorio: "Cicatriz",
+        perigo: "Alto",
+        crime: "Produção e venda de armas químicas",
+        historico: [
+          "2024-01: Ataque químico em estação de metrô",
+          "2023-10: Roubo de urânio enriquecido",
+          "2023-06: Fabricação de gás nervoso",
+          "2023-02: Contaminação de reservatório",
+          "2022-11: Venda de veneno a terroristas",
+          "2022-08: Explosão em laboratório",
+          "2022-04: Tráfico de materiais radioativos"
+        ]
+      },
+      {
+        codinome: "Siren",
+        nome_real: "Naomi Tanaka",
+        cargo: "Disfarces",
+        genero: "Feminino",
+        cabelo: "Castanho",
+        hobby: "Poker",
+        veiculo: "Moto Esportiva",
+        acessorio: "Relógio de Ouro",
+        perigo: "Baixo",
+        crime: "Fraude, falsificação de identidade",
+        historico: [
+          "2024-02: Fraude bancária de 10M",
+          "2023-11: Falsificação de passaportes",
+          "2023-07: Roubo de identidade de juiz",
+          "2023-03: Invasão a cofre de banco",
+          "2022-12: Extorsão com fotos falsas",
+          "2022-09: Fuga da prisão usando disfarce",
+          "2022-05: Roubo de documentos diplomáticos"
+        ]
+      },
+      {
+        codinome: "Monarca",
+        nome_real: "Stefano Moretti",
+        cargo: "Financiador",
+        genero: "Masculino",
+        cabelo: "Castanho",
+        hobby: "Xadrez",
+        veiculo: "Helicóptero",
+        acessorio: "Relógio de Ouro",
+        perigo: "Médio",
+        crime: "Lavagem de dinheiro, financiamento de terrorismo",
+        historico: [
+          "2024-03: Lavagem de 200M via criptomoedas",
+          "2023-12: Financiamento de ataque terrorista",
+          "2023-08: Compra de empresas de fachada",
+          "2023-05: Corrupção de políticos",
+          "2023-01: Tráfico de influência",
+          "2022-10: Sonegação fiscal internacional",
+          "2022-06: Criação de paraísos fiscais"
+        ]
+      },
+      {
+        codinome: "Specter",
+        nome_real: "Klaus Berger",
+        cargo: "Espião",
+        genero: "Masculino",
+        cabelo: "Loiro",
+        hobby: "Escalada",
+        veiculo: "Moto Esportiva",
+        acessorio: "Luva de Couro",
+        perigo: "Médio",
+        crime: "Espionagem de estado, roubo de segredos",
+        historico: [
+          "2024-01: Roubo de planos de defesa",
+          "2023-09: Infiltração na ONU",
+          "2023-05: Venda de segredos nucleares",
+          "2023-02: Sabotagem de acordo diplomático",
+          "2022-11: Assassinato de agente duplo",
+          "2022-07: Roubo de documentos da OTAN",
+          "2022-03: Interceptação de comunicações"
+        ]
+      },
+      {
+        codinome: "Nebula",
+        nome_real: "Iris Thorne",
+        cargo: "Logística",
+        genero: "Feminino",
+        cabelo: "Loiro",
+        hobby: "Escultura",
+        veiculo: "Carro Elétrico",
+        acessorio: "Tatuagem de Aranha",
+        perigo: "Baixo",
+        crime: "Tráfico de armas e tecnologia",
+        historico: [
+          "2024-02: Tráfico de mísseis antiaéreos",
+          "2023-10: Contrabando de chips avançados",
+          "2023-06: Venda de drones militares",
+          "2023-03: Roubo de protótipos de armas",
+          "2022-12: Transporte de material ilegal",
+          "2022-08: Logística para ataque cibernético",
+          "2022-04: Criação de rotas de fuga"
+        ]
+      },
+      {
+        codinome: "Apex",
+        nome_real: "Marcus Vance",
+        cargo: "Piloto de Fuga",
+        genero: "Masculino",
+        cabelo: "Ruivo",
+        hobby: "Poker",
+        veiculo: "Moto Esportiva",
+        acessorio: "Óculos Escuros",
+        perigo: "Médio",
+        crime: "Fuga de prisões, transporte de criminosos",
+        historico: [
+          "2024-03: Fuga de 5 presos de alta segurança",
+          "2023-11: Transporte de líder terrorista",
+          "2023-07: Roubo de helicóptero da polícia",
+          "2023-04: Fuga de comboio blindado",
+          "2023-01: Resgate de chefão do crime",
+          "2022-09: Extorsão com fuga planejada",
+          "2022-05: Criação de rotas de evasão"
+        ]
+      },
+      {
+        codinome: "Echo",
+        nome_real: "Rin Sato",
+        cargo: "Escuta/Radar",
+        genero: "Não-Binário",
+        cabelo: "Castanho",
+        hobby: "Culinária",
+        veiculo: "Patinete Elétrico",
+        acessorio: "Tatuagem de Aranha",
+        perigo: "Baixo",
+        crime: "Escuta ilegal, venda de informações",
+        historico: [
+          "2024-01: Espionagem de telefonemas oficiais",
+          "2023-08: Venda de escutas de políticos",
+          "2023-04: Invasão a sistemas de comunicação",
+          "2023-01: Roubo de dados de inteligência",
+          "2022-10: Venda de informações de celebridades",
+          "2022-06: Interceptação de e-mails diplomáticos",
+          "2022-02: Criação de rede de escutas"
+        ]
+      }
     ];
 
     const CIDADES = [
-      { id: "rio", nome: "Rio de Janeiro", pais: "Brasil", moeda: "Real", idioma: "Português", pontos_turisticos: ["Cristo Redentor", "Pão de Açúcar", "Copacabana"], culinaria: "Feijoada, Caipirinha", fatos_culturais: ["Carnaval", "Bossa Nova"] },
-      { id: "sp", nome: "São Paulo", pais: "Brasil", moeda: "Real", idioma: "Português", pontos_turisticos: ["Avenida Paulista", "MASP", "Parque Ibirapuera"], culinaria: "Pizza paulistana, Virado à Paulista", fatos_culturais: ["Maior metrópole da América Latina"] },
-      { id: "tokyo", nome: "Tóquio", pais: "Japão", moeda: "Iene", idioma: "Japonês", pontos_turisticos: ["Cruzamento de Shibuya", "Torre de Tóquio", "Monte Fuji"], culinaria: "Sushi, Ramen", fatos_culturais: ["Capital tecnológica e dos animes"] },
-      { id: "cairo", nome: "Cairo", pais: "Egito", moeda: "Libra Egípcia", idioma: "Árabe", pontos_turisticos: ["Pirâmides de Gizé", "Esfinge", "Rio Nilo"], culinaria: "Koshari, Falafel", fatos_culturais: ["História antiga dos Faraós"] },
-      { id: "paris", nome: "Paris", pais: "França", moeda: "Euro", idioma: "Francês", pontos_turisticos: ["Torre Eiffel", "Museu do Louvre"], culinaria: "Croissant, Macarons", fatos_culturais: ["Cidade Luz", "Capital da moda"] },
-      { id: "ny", nome: "Nova York", pais: "Estados Unidos", moeda: "Dólar", idioma: "Inglês", pontos_turisticos: ["Estátua da Liberdade", "Times Square", "Central Park"], culinaria: "Hambúrguer, Pizza de NY", fatos_culturais: ["Broadway"] },
-      { id: "london", nome: "Londres", pais: "Reino Unido", moeda: "Libra Esterlina", idioma: "Inglês", pontos_turisticos: ["Big Ben", "London Eye"], culinaria: "Fish and Chips", fatos_culturais: ["Cultura Real"] },
-      { id: "roma", nome: "Roma", pais: "Itália", moeda: "Euro", idioma: "Italiano", pontos_turisticos: ["Coliseu", "Fontana di Trevi"], culinaria: "Pasta Carbonara, Gelato", fatos_culturais: ["Império Romano"] },
-      { id: "sydney", nome: "Sydney", pais: "Austrália", moeda: "Dólar Australiano", idioma: "Inglês", pontos_turisticos: ["Opera House", "Sydney Harbour Bridge"], culinaria: "Churrasco Australiano", fatos_culturais: ["Cultura do Surfe"] },
-      { id: "capetown", nome: "Cidade do Cabo", pais: "África do Sul", moeda: "Rand", idioma: "Inglês/Africâner", pontos_turisticos: ["Table Mountain", "Cabo da Boa Esperança"], culinaria: "Biltong", fatos_culturais: ["História de Nelson Mandela"] },
-      { id: "delhi", nome: "Nova Déli", pais: "Índia", moeda: "Rupia Indiana", idioma: "Hindi", pontos_turisticos: ["Taj Mahal", "Portão da Índia"], culinaria: "Chicken Tikka Masala", fatos_culturais: ["Festivais das Cores (Holi)"] },
-      { id: "mexico", nome: "Cidade do México", pais: "México", moeda: "Peso Mexicano", idioma: "Espanhol", pontos_turisticos: ["Pirâmides de Teotihuacán", "Museu Frida Kahlo"], culinaria: "Tacos, Guacamole", fatos_culturais: ["Dia dos Mortos"] },
-      { id: "moscow", nome: "Moscou", pais: "Rússia", moeda: "Rublo", idioma: "Russo", pontos_turisticos: ["Praça Vermelha", "Kremlin"], culinaria: "Borsch, Strogonoff", fatos_culturais: ["Arquitetura Soviética"] }
+      { id: "rio", nome: "Rio de Janeiro", pais: "Brasil", moeda: "Real", idioma: "Português", pontos_turisticos: ["Cristo Redentor", "Pão de Açúcar"], culinaria: "Feijoada", fatos_culturais: ["Carnaval", "Bossa Nova"] },
+      { id: "sp", nome: "São Paulo", pais: "Brasil", moeda: "Real", idioma: "Português", pontos_turisticos: ["Avenida Paulista", "MASP"], culinaria: "Pizza", fatos_culturais: ["Maior metrópole da AL"] },
+      { id: "tokyo", nome: "Tóquio", pais: "Japão", moeda: "Iene", idioma: "Japonês", pontos_turisticos: ["Shibuya", "Torre de Tóquio"], culinaria: "Sushi", fatos_culturais: ["Tecnologia e animes"] },
+      { id: "cairo", nome: "Cairo", pais: "Egito", moeda: "Libra", idioma: "Árabe", pontos_turisticos: ["Pirâmides", "Esfinge"], culinaria: "Koshari", fatos_culturais: ["Faraós"] },
+      { id: "paris", nome: "Paris", pais: "França", moeda: "Euro", idioma: "Francês", pontos_turisticos: ["Torre Eiffel", "Louvre"], culinaria: "Croissant", fatos_culturais: ["Cidade Luz"] },
+      { id: "ny", nome: "Nova York", pais: "EUA", moeda: "Dólar", idioma: "Inglês", pontos_turisticos: ["Estátua da Liberdade", "Central Park"], culinaria: "Pizza", fatos_culturais: ["Broadway"] },
+      { id: "london", nome: "Londres", pais: "Reino Unido", moeda: "Libra", idioma: "Inglês", pontos_turisticos: ["Big Ben", "London Eye"], culinaria: "Fish and Chips", fatos_culturais: ["Cultura Real"] },
+      { id: "roma", nome: "Roma", pais: "Itália", moeda: "Euro", idioma: "Italiano", pontos_turisticos: ["Coliseu", "Fontana"], culinaria: "Pasta", fatos_culturais: ["Império Romano"] },
+      { id: "sydney", nome: "Sydney", pais: "Austrália", moeda: "Dólar Australiano", idioma: "Inglês", pontos_turisticos: ["Opera House", "Harbour Bridge"], culinaria: "Churrasco", fatos_culturais: ["Surfe"] },
+      { id: "capetown", nome: "Cidade do Cabo", pais: "África do Sul", moeda: "Rand", idioma: "Inglês/Africâner", pontos_turisticos: ["Table Mountain", "Cabo"], culinaria: "Biltong", fatos_culturais: ["Nelson Mandela"] },
+      { id: "delhi", nome: "Nova Déli", pais: "Índia", moeda: "Rupia", idioma: "Hindi", pontos_turisticos: ["Taj Mahal", "Portão da Índia"], culinaria: "Tikka Masala", fatos_culturais: ["Holi"] },
+      { id: "mexico", nome: "Cidade do México", pais: "México", moeda: "Peso", idioma: "Espanhol", pontos_turisticos: ["Teotihuacán", "Frida Kahlo"], culinaria: "Tacos", fatos_culturais: ["Dia dos Mortos"] },
+      { id: "moscow", nome: "Moscou", pais: "Rússia", moeda: "Rublo", idioma: "Russo", pontos_turisticos: ["Praça Vermelha", "Kremlin"], culinaria: "Borsch", fatos_culturais: ["Arquitetura Soviética"] }
     ];
 
-    // ==== ATENÇÃO JORGE: troque pela URL real do seu Worker publicado no Cloudflare ====
-    // Ex: https://cacada-mundial-worker.SEU-SUBDOMINIO.workers.dev/
     const CFG_WORKER_URL = "https://apicacmundial.franckjlfp.workers.dev/";
 
-    // Modelos padrão por provedor (usados quando o campo "Modelo" fica em branco)
+    function nomeArquivoFoto(codinome) {
+      const p = codinome.trim().split(" ")[0];
+      return p.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+    function caminhoFotoSuspeito(codinome) {
+      return `${nomeArquivoFoto(codinome)}.png`;
+    }
+
     const MODELOS_PADRAO = {
-      google: "google/gemma-4-26b-a4b-it",
+      google: "google/gemini-2.0-flash-exp",
       openrouter: "google/gemma-4-26b-a4b-it",
-      nvidia: "nvidia/nemotron-3-super-120b-a12b",
+      nvidia: "nvidia/nemotron-4-340b-instruct",
       inception: "mercury-2",
-      ollama: "llama3"
+      ollama: "llama3.2"
     };
 
+    // ============================================================
+    // 2. ENGINE DO JOGO
+    // ============================================================
     class EngineJogo {
       constructor() {
         this.estado = {
@@ -290,68 +1194,82 @@
           indiceCidadeAtual: 0,
           caracteristicaSorteadaPorCidade: {},
           mandadoEmitidoPara: null,
-          testemunhaAtiva: null
+          testemunhaAtiva: null,
+          jogoFinalizado: false
         };
+        this.suspeitoPreso = null;
       }
 
       iniciarCaso() {
         const provedorSalvo = localStorage.getItem("cfg_provedor");
         if (!provedorSalvo) {
-          alert("Atenção detetive! Configure seu provedor de Inteligência Artificial e chave na aba 'Setup IA' antes de jogar.");
+          alert("⚙️ Configure seu provedor de IA e chave na aba 'Setup' antes de jogar.");
           this.mudarTela("config");
           return;
         }
 
-        // 1. Reset e Setup Sorteio
+        // Reset completo do estado
         this.estado.horasRestantes = 72;
         this.estado.mandadoEmitidoPara = null;
         this.estado.indiceCidadeAtual = 0;
+        this.estado.jogoFinalizado = false;
+        this.suspeitoPreso = null;
+
+        // Sorteia o alvo
         this.estado.suspeitoAlvo = SUSPEITOS[Math.floor(Math.random() * SUSPEITOS.length)];
 
-        const tamanhoRota = Math.floor(Math.random() * 3) + 4; // 4 a 6 cidades
+        // Gera rota (4-6 cidades)
+        const tamanhoRota = Math.floor(Math.random() * 3) + 4;
         const cidadesEmbaralhadas = [...CIDADES].sort(() => 0.5 - Math.random());
         this.estado.rota = cidadesEmbaralhadas.slice(0, tamanhoRota);
 
-        // Distribui características discretas de pista pelas cidades da rota
-        const attrs = ["genero", "cabelo", "hobby", "veiculo", "acessorio"];
-        this.estado.rota.forEach((cidade, i) => {
+        // Distribui características pelas cidades (exceto última)
+        const attrs = ["genero", "cabelo", "hobby", "veiculo", "acessorio", "perigo"];
+        const cidadesComTestemunha = this.estado.rota.slice(0, -1);
+        cidadesComTestemunha.forEach((cidade, i) => {
           const attr = attrs[i % attrs.length];
-          let label = attr.toUpperCase();
-          if(attr === "genero") label = "Gênero";
-          if(attr === "cabelo") label = "Cabelo";
-          this.estado.caracteristicaSorteadaPorCidade[cidade.id] = `${label}: ${this.estado.suspeitoAlvo[attr]}`;
+          const labels = {
+            genero: "Gênero", cabelo: "Cabelo", hobby: "Hobby",
+            veiculo: "Veículo", acessorio: "Acessório", perigo: "Periculosidade"
+          };
+          this.estado.caracteristicaSorteadaPorCidade[cidade.id] =
+            `${labels[attr]}: ${this.estado.suspeitoAlvo[attr]}`;
         });
 
-        // Interface Update
+        // Atualiza UI
         document.getElementById("game-timer").classList.remove("hidden");
         document.getElementById("app-nav").classList.remove("hidden");
         this.atualizarHUD();
         this.mudarTela("investigar");
         this.gerarConexoesVoo();
-
-        // Limpar visual antigo do chat
         document.getElementById("box-chat-testemunha").classList.add("hidden");
+        document.getElementById("view-splash").querySelector("button").innerText = "🔍 Nova Investigação";
       }
 
       atualizarHUD() {
-        document.getElementById("game-timer").innerText = `⏳ ${this.estado.horasRestantes}h restantes`;
-        const cidadeAtual = this.estado.rota[this.estado.indiceCidadeAtual];
-        document.getElementById("txt-cidade-local").innerText = `${cidadeAtual.nome}, ${cidadeAtual.pais}`;
+        const horas = this.estado.horasRestantes;
+        const badge = document.getElementById("game-timer");
+        badge.innerText = `⏳ ${horas}h`;
+        badge.classList.toggle("warning", horas <= 24);
 
-        // Verifica se é a última cidade
-        const isUltima = this.estado.indiceCidadeAtual === this.estado.rota.length - 1;
-        if(isUltima) {
-          document.getElementById("locais-grid").classList.add("hidden");
-          document.getElementById("box-esconderijo-final").classList.remove("hidden");
-          document.getElementById("txt-status-local").innerText = "Fim da linha! O suspeito está trancado no esconderijo.";
-        } else {
-          document.getElementById("locais-grid").classList.remove("hidden");
-          document.getElementById("box-esconderijo-final").classList.add("hidden");
-          document.getElementById("txt-status-local").innerText = "Selecione um ponto de interesse para interrogar uma testemunha local:";
+        const cidadeAtual = this.estado.rota[this.estado.indiceCidadeAtual];
+        if (cidadeAtual) {
+          document.getElementById("txt-cidade-local").innerText = `📍 ${cidadeAtual.nome}, ${cidadeAtual.pais}`;
         }
 
-        if(this.estado.horasRestantes <= 0) {
-          this.finalizarPartida(false, "O tempo limite expirou! O agente da KAOS-13 escapou e o caso foi arquivado.");
+        const isUltima = this.estado.indiceCidadeAtual === this.estado.rota.length - 1;
+        if (isUltima && !this.estado.jogoFinalizado) {
+          document.getElementById("locais-grid").classList.add("hidden");
+          document.getElementById("box-esconderijo-final").classList.remove("hidden");
+          document.getElementById("txt-status-local").innerText = "🚨 O suspeito está encurralado aqui!";
+        } else if (!this.estado.jogoFinalizado) {
+          document.getElementById("locais-grid").classList.remove("hidden");
+          document.getElementById("box-esconderijo-final").classList.add("hidden");
+          document.getElementById("txt-status-local").innerText = "Selecione um local para interrogar uma testemunha:";
+        }
+
+        if (this.estado.horasRestantes <= 0 && !this.estado.jogoFinalizado) {
+          this.finalizarPartida(false, "⏰ Tempo esgotado! O agente da KAOS-13 escapou. O caso foi arquivado.");
         }
       }
 
@@ -359,51 +1277,134 @@
         document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
         document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
 
-        document.getElementById(`view-${telaId}`).classList.add("active");
+        const target = document.getElementById(`view-${telaId}`);
+        if (target) target.classList.add("active");
         const btnNav = document.getElementById(`nav-${telaId}`);
-        if(btnNav) btnNav.classList.add("active");
+        if (btnNav) btnNav.classList.add("active");
 
-        if(telaId === "config") {
-          this.carregarCamposConfig();
-        }
+        if (telaId === "config") this.carregarCamposConfig();
+        if (telaId === "galeria") this.renderizarGaleria();
+        if (telaId === "mandado") this.filtrarSuspeitos();
       }
 
+      // ===== GALERIA =====
+      renderizarGaleria() {
+        const grid = document.getElementById("galeria-grid");
+        grid.innerHTML = "";
+        const labels = { genero: "Gênero", cabelo: "Cabelo", hobby: "Hobby", veiculo: "Veículo", acessorio: "Acessório", perigo: "Perigo" };
+
+        SUSPEITOS.forEach(s => {
+          const card = document.createElement("div");
+          card.className = "dossie-card";
+          const foto = caminhoFotoSuspeito(s.codinome);
+          card.innerHTML = `
+            <div class="dossie-foto-wrap">
+              <img src="${foto}" alt="${s.codinome}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+              <div class="dossie-foto-fallback" style="display:none;">🕵️</div>
+            </div>
+            <div class="dossie-info">
+              <div class="dossie-nome">${s.codinome} ${s === this.suspeitoPreso ? '⛓️' : ''}</div>
+              <div class="dossie-cargo">${s.cargo}</div>
+              <div class="dossie-tracos">
+                ${["genero","cabelo","hobby","veiculo","acessorio","perigo"].map(attr =>
+                  `<span class="dossie-traco">${labels[attr]}: <strong>${s[attr]}</strong></span>`
+                ).join("")}
+              </div>
+            </div>
+          `;
+          card.onclick = () => this.abrirModal(s);
+          grid.appendChild(card);
+        });
+
+        // Espaçador para evitar que o último item fique escondido
+        const spacer = document.createElement("div");
+        spacer.style.height = "24px";
+        spacer.style.flexShrink = "0";
+        grid.appendChild(spacer);
+      }
+
+      // ===== MODAL FICHA DETALHADA =====
+      abrirModal(suspeito, preso = false) {
+        const modal = document.getElementById("modal-dossie");
+        modal.classList.add("active");
+
+        document.getElementById("modal-nome").textContent = `${suspeito.codinome} (${suspeito.nome_real})`;
+        document.getElementById("modal-cargo").textContent = suspeito.cargo;
+        document.getElementById("modal-crime").textContent = `🔪 Crime: ${suspeito.crime}`;
+
+        const fotoEl = document.getElementById("modal-foto-img");
+        const fallback = fotoEl.nextElementSibling;
+        fotoEl.src = caminhoFotoSuspeito(suspeito.codinome);
+        fotoEl.style.display = "block";
+        fallback.style.display = "none";
+        fotoEl.onerror = () => { fotoEl.style.display = "none"; fallback.style.display = "flex"; };
+
+        document.getElementById("d-genero").textContent = suspeito.genero;
+        document.getElementById("d-cabelo").textContent = suspeito.cabelo;
+        document.getElementById("d-hobby").textContent = suspeito.hobby;
+        document.getElementById("d-veiculo").textContent = suspeito.veiculo;
+        document.getElementById("d-acessorio").textContent = suspeito.acessorio;
+        document.getElementById("d-perigo").textContent = suspeito.perigo;
+
+        // Badge de preso
+        const badge = document.getElementById("modal-preso-badge");
+        if (preso) {
+          badge.classList.remove("hidden");
+        } else {
+          badge.classList.add("hidden");
+        }
+
+        // Histórico de 7 crimes
+        const lista = document.getElementById("modal-historia-lista");
+        lista.innerHTML = "";
+        suspeito.historico.forEach((crime, idx) => {
+          const li = document.createElement("li");
+          li.innerHTML = `<span>${crime}</span><span class="data">${idx + 1}/7</span>`;
+          lista.appendChild(li);
+        });
+      }
+
+      fecharModal() {
+        document.getElementById("modal-dossie").classList.remove("active");
+      }
+
+      // ===== CHAT / TESTEMUNHA =====
       abrirTestemunha(local, profissao) {
+        if (this.estado.jogoFinalizado) return;
         this.estado.testemunhaAtiva = profissao;
-        document.getElementById("box-chat-testemunha").classList.remove("hidden");
-        document.getElementById("lbl-nome-testemunha").innerText = `🗣️ Interrogando: ${profissao} no(a) ${local}`;
+        const box = document.getElementById("box-chat-testemunha");
+        box.classList.remove("hidden");
+        document.getElementById("lbl-nome-testemunha").innerHTML = `🗣️ Interrogando: ${profissao} no ${local}`;
 
         const chatBox = document.getElementById("chat-messages");
         chatBox.innerHTML = "";
-
-        const msgIntro = document.createElement("div");
-        msgIntro.className = "msg system";
-        msgIntro.innerText = `[${profissao}]: Olá detetive, o que deseja saber? Eu vi um indivíduo estranho passando apressado por aqui mais cedo...`;
-        chatBox.appendChild(msgIntro);
+        const msg = document.createElement("div");
+        msg.className = "msg system";
+        msg.innerText = `[${profissao}]: Olá detetive! Vi um indivíduo estranho por aqui... O que deseja saber?`;
+        chatBox.appendChild(msg);
+        // Rola o chat para o topo
+        chatBox.scrollTop = 0;
       }
 
       async enviarPerguntaRapida(tipo) {
-        let textoPergunta = "Você sabe para onde aquela pessoa foi?";
-        if(tipo === "aparencia") textoPergunta = "Quais eram as características físicas do suspeito?";
-
-        await this.executarChamadaIA(textoPergunta);
+        let texto = "Você sabe para onde a pessoa foi?";
+        if (tipo === "aparencia") texto = "Quais eram as características físicas do suspeito?";
+        if (tipo === "crime") texto = "Que crime você acredita que ele cometeu?";
+        await this.executarChamadaIA(texto);
       }
 
       async enviarPerguntaLivre() {
         const input = document.getElementById("input-chat-livre");
         const prompt = input.value.trim();
-        if(!prompt) return;
-
+        if (!prompt) return;
         input.value = "";
         await this.executarChamadaIA(prompt);
       }
 
       async executarChamadaIA(perguntaUsuario) {
-        if(this.estado.horasRestantes <= 0) return;
+        if (this.estado.horasRestantes <= 0 || this.estado.jogoFinalizado) return;
 
         const chatBox = document.getElementById("chat-messages");
-
-        // Render user prompt
         const divUser = document.createElement("div");
         divUser.className = "msg user";
         divUser.innerText = perguntaUsuario;
@@ -413,71 +1414,66 @@
         const loader = document.getElementById("chat-loading");
         loader.classList.remove("hidden");
 
-        this.estado.horasRestantes -= 3; // Regra de negócio: 3h por inquirição
+        this.estado.horasRestantes = Math.max(0, this.estado.horasRestantes - 3);
         this.atualizarHUD();
 
         const cidadeAtual = this.estado.rota[this.estado.indiceCidadeAtual];
-        const proximaCidade = this.estado.rota[this.estado.indiceCidadeAtual + 1] || cidadeAtual; // Se for o final, repete a cidade
+        const prox = this.estado.rota[this.estado.indiceCidadeAtual + 1] || cidadeAtual;
 
         const provedor = localStorage.getItem("cfg_provedor");
-        const modeloConfigurado = localStorage.getItem("cfg_modelo") || MODELOS_PADRAO[provedor] || "";
+        const modelo = localStorage.getItem("cfg_modelo") || MODELOS_PADRAO[provedor] || "";
+        const endpoint = localStorage.getItem("cfg_endpoint");
 
-        // Envelopamento estruturado de dados locais para envio ao Worker
         const payload = {
-          provedor: provedor,
-          modelo: modeloConfigurado,
-          apiEndpointCustom: localStorage.getItem("cfg_endpoint"),
+          provedor,
+          modelo,
+          apiEndpointCustom: endpoint,
           perguntaJogador: perguntaUsuario,
           variaveisJogo: {
             cidadeAtualNome: cidadeAtual.nome,
             cidadeAtualPais: cidadeAtual.pais,
             testemunha: this.estado.testemunhaAtiva,
-            proximaCidadeNome: proximaCidade.nome,
-            caracteristicaSorteada: this.estado.caracteristicaSorteadaPorCidade[cidadeAtual.id],
+            proximaCidadeNome: prox.nome,
+            caracteristicaSorteada: this.estado.caracteristicaSorteadaPorCidade[cidadeAtual.id] || "Nenhuma pista específica aqui",
             pistas: {
-              moeda: proximaCidade.moeda,
-              pontos: proximaCidade.pontos_turisticos.join(", "),
-              culinaria: proximaCidade.culinaria,
-              fatos: proximaCidade.fatos_culturais ? proximaCidade.fatos_culturais.join(", ") : ""
+              moeda: prox.moeda,
+              pontos: prox.pontos_turisticos.join(", "),
+              culinaria: prox.culinaria,
+              fatos: prox.fatos_culturais ? prox.fatos_culturais.join(", ") : ""
             }
           }
         };
 
         try {
-          let respostaFinalText = "";
+          let respostaFinal = "";
           const token = localStorage.getItem("cfg_key") || "";
 
-          // Abordagem Híbrida: Roteamento de IA Local ou Edge Worker
-          if(payload.provedor === "ollama") {
+          if (payload.provedor === "ollama") {
             const localEndpoint = payload.apiEndpointCustom || "http://localhost:11434";
-
-            // Passo 1: Pede para o Cloudflare formatar as diretrizes do prompt de forma segura
-            const resFormater = await fetch(`${CFG_WORKER_URL}`, {
+            const resFormat = await fetch(CFG_WORKER_URL, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload)
             });
-            if(!resFormater.ok) throw new Error(`Worker retornou HTTP ${resFormater.status} ao preparar prompt local`);
-            const schemaInst = await resFormater.json();
-            if(schemaInst.error) throw new Error(schemaInst.error);
+            if (!resFormat.ok) throw new Error(`Worker HTTP ${resFormat.status}`);
+            const schema = await resFormat.json();
+            if (schema.error) throw new Error(schema.error);
 
-            // Passo 2: O PWA executa o fetch direto na rede interna (localhost) do usuário
             const resOllama = await fetch(`${localEndpoint}/api/generate`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                model: modeloConfigurado || "llama3",
-                prompt: `${schemaInst.systemInstruction}\n\nPergunta do usuário: ${schemaInst.perguntaJogador}`,
+                model: modelo || "llama3.2",
+                prompt: `${schema.systemInstruction}\n\nPergunta: ${schema.perguntaJogador}`,
                 stream: false,
-                options: { num_predict: 120, temperature: 0.7 }
+                options: { num_predict: 150, temperature: 0.7 }
               })
             });
-            if(!resOllama.ok) throw new Error(`Ollama local retornou HTTP ${resOllama.status}`);
-            const dataOllama = await resOllama.json();
-            respostaFinalText = dataOllama.response;
+            if (!resOllama.ok) throw new Error(`Ollama HTTP ${resOllama.status}`);
+            const data = await resOllama.json();
+            respostaFinal = data.response;
           } else {
-            // Execução remota padrão nos servidores Edge do Worker
-            const resWorker = await fetch(`${CFG_WORKER_URL}`, {
+            const resWorker = await fetch(CFG_WORKER_URL, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -485,68 +1481,61 @@
               },
               body: JSON.stringify(payload)
             });
-            const dataWorker = await resWorker.json();
-            if(!resWorker.ok || dataWorker.error) {
-              throw new Error(dataWorker.error || `Worker retornou HTTP ${resWorker.status}`);
-            }
-            respostaFinalText = dataWorker.resposta;
+            const data = await resWorker.json();
+            if (!resWorker.ok || data.error) throw new Error(data.error || `HTTP ${resWorker.status}`);
+            respostaFinal = data.resposta;
           }
 
-          const divSystem = document.createElement("div");
-          divSystem.className = "msg system";
-          divSystem.innerText = `[${this.estado.testemunhaAtiva}]: ${respostaFinalText}`;
-          chatBox.appendChild(divSystem);
+          const divSys = document.createElement("div");
+          divSys.className = "msg system";
+          divSys.innerText = `[${this.estado.testemunhaAtiva}]: ${respostaFinal}`;
+          chatBox.appendChild(divSys);
 
         } catch (err) {
           console.error(err);
-          const divSystem = document.createElement("div");
-          divSystem.className = "msg erro";
-          divSystem.innerText = `[Erro de Comunicação]: A conexão com a inteligência do local falhou. Detalhe técnico: ${err.message}`;
-          chatBox.appendChild(divSystem);
+          const divErr = document.createElement("div");
+          divErr.className = "msg erro";
+          divErr.innerText = `[Erro] ${err.message}`;
+          chatBox.appendChild(divErr);
         } finally {
           loader.classList.add("hidden");
           chatBox.scrollTop = chatBox.scrollHeight;
         }
       }
 
+      // ===== VIAGEM =====
       gerarConexoesVoo() {
         const grid = document.getElementById("conexoes-grid");
         grid.innerHTML = "";
-
         const cidadeAtual = this.estado.rota[this.estado.indiceCidadeAtual];
         const proximaCorreta = this.estado.rota[this.estado.indiceCidadeAtual + 1];
 
-        let destinosDisponiveis = [];
-        if (proximaCorreta) {
-          destinosDisponiveis.push(proximaCorreta);
-        }
+        let destinos = [];
+        if (proximaCorreta) destinos.push(proximaCorreta);
 
-        // Preenche com falsas opções para criar o desafio geográfico
-        const cidadesFalsas = CIDADES.filter(c => c.id !== cidadeAtual.id && (!proximaCorreta || c.id !== proximaCorreta.id));
-        const falsasSorteadas = cidadesFalsas.sort(() => 0.5 - Math.random()).slice(0, 3);
-        destinosDisponiveis = destinosDisponiveis.concat(falsasSorteadas).sort(() => 0.5 - Math.random());
+        const falsas = CIDADES.filter(c => c.id !== cidadeAtual.id && (!proximaCorreta || c.id !== proximaCorreta.id));
+        const sorteadas = falsas.sort(() => 0.5 - Math.random()).slice(0, 3);
+        destinos = destinos.concat(sorteadas).sort(() => 0.5 - Math.random());
 
-        destinosDisponiveis.forEach(cidade => {
-          const btnVoo = document.createElement("div");
-          btnVoo.className = "item-select";
-          btnVoo.innerHTML = `✈️ Voo para:<br><strong>${cidade.nome}</strong><br><span style='font-size:0.75rem; color:var(--text-muted)'>${cidade.pais}</span>`;
-          btnVoo.onclick = () => this.viajar(cidade);
-          grid.appendChild(btnVoo);
+        destinos.forEach(cidade => {
+          const btn = document.createElement("div");
+          btn.className = "item-select";
+          btn.innerHTML = `✈️ ${cidade.nome}<br><span style='font-size:0.7rem;color:var(--text-muted)'>${cidade.pais}</span>`;
+          btn.onclick = () => this.viajar(cidade);
+          grid.appendChild(btn);
         });
       }
 
       viajar(cidadeDestino) {
-        this.estado.horasRestantes -= 8; // Regra de negócio: 8h por viagem aérea
+        if (this.estado.jogoFinalizado) return;
+        this.estado.horasRestantes = Math.max(0, this.estado.horasRestantes - 8);
         document.getElementById("box-chat-testemunha").classList.add("hidden");
 
         const proximaCorreta = this.estado.rota[this.estado.indiceCidadeAtual + 1];
-
         if (proximaCorreta && cidadeDestino.id === proximaCorreta.id) {
-          // Avança na trilha correta
           this.estado.indiceCidadeAtual++;
         } else {
-          // Cidade errada: Penalidade aplicada. Permanece no índice atual, forçando o voo de volta
-          alert(`Você pousou em ${cidadeDestino.nome}. Ao investigar a pista, os moradores locais informam que nunca ouviram falar do suspeito. Você perdeu tempo de voo e precisa retornar para a rota.`);
+          alert(`❌ Você foi para ${cidadeDestino.nome}. Ninguém ali conhece o suspeito. Você perdeu tempo e precisa retornar.`);
         }
 
         this.atualizarHUD();
@@ -554,12 +1543,14 @@
         this.mudarTela("investigar");
       }
 
+      // ===== MANDADO =====
       filtrarSuspeitos() {
         const gen = document.getElementById("f-genero").value;
         const cab = document.getElementById("f-cabelo").value;
         const hob = document.getElementById("f-hobby").value;
         const vei = document.getElementById("f-veiculo").value;
         const ace = document.getElementById("f-acessorio").value;
+        const per = document.getElementById("f-perigo").value;
 
         const filtrados = SUSPEITOS.filter(s => {
           if (gen && s.genero !== gen) return false;
@@ -567,53 +1558,80 @@
           if (hob && s.hobby !== hob) return false;
           if (vei && s.veiculo !== vei) return false;
           if (ace && s.acessorio !== ace) return false;
+          if (per && s.perigo !== per) return false;
           return true;
         });
 
-        const lblInfo = document.getElementById("txt-resultado-filtro");
-        const btnEmitir = document.getElementById("btn-emitir-mandado");
+        const lbl = document.getElementById("txt-resultado-filtro");
+        const btn = document.getElementById("btn-emitir-mandado");
 
         if (filtrados.length === 1) {
           const alvo = filtrados[0];
-          lblInfo.innerHTML = `🎯 Suspeito isolado: <strong style="color:var(--accent);">${alvo.codinome}</strong> (${alvo.cargo})`;
-          btnEmitir.removeAttribute("disabled");
-          btnEmitir.innerText = `Emitir Mandado para ${alvo.codinome}`;
-          btnEmitir.onclick = () => {
+          lbl.innerHTML = `🎯 Alvo isolado: <strong style="color:var(--accent);">${alvo.codinome}</strong>`;
+          btn.removeAttribute("disabled");
+          btn.innerText = `📜 Emitir Mandado para ${alvo.codinome}`;
+          btn.onclick = () => {
             this.estado.mandadoEmitidoPara = alvo.codinome;
-            alert(`Mandado de Prisão Internacional emitido pela INTERPOL contra ${alvo.codinome}!`);
+            alert(`✅ Mandado emitido contra ${alvo.codinome}! Agora vá até o esconderijo.`);
           };
         } else {
-          lblInfo.innerText = `Resultados possíveis no banco de dados: ${filtrados.length}`;
-          btnEmitir.setAttribute("disabled", "true");
-          btnEmitir.innerText = "Emitir Mandado de Prisão";
+          lbl.innerText = `🔍 Resultados: ${filtrados.length}`;
+          btn.setAttribute("disabled", "true");
+          btn.innerText = "Emitir Mandado";
         }
       }
 
+      // ===== PRISÃO =====
       executarPrisao() {
+        if (this.estado.jogoFinalizado) return;
+
         if (!this.estado.mandadoEmitidoPara) {
-          this.finalizarPartida(false, "Falha na Missão! Você encurralou o agente da KAOS-13, mas não tinha um mandado legalizado emitido no sistema. Ele usou a brecha técnica e fugiu de helicóptero!");
+          this.finalizarPartida(false, "❌ Você não tinha um mandado válido! O suspeito escapou pela janela.");
           return;
         }
 
         if (this.estado.mandadoEmitidoPara === this.estado.suspeitoAlvo.codinome) {
-          this.finalizarPartida(true, `Excelente trabalho, Agente! Você prendeu com sucesso o meliante **${this.estado.suspeitoAlvo.codinome}** (${this.estado.suspeitoAlvo.nome_real}), que estava escondido a mando da organização KAOS-13. A Token SLP parabeniza seus esforços.`);
+          // PRISÃO BEM-SUCEDIDA
+          this.suspeitoPreso = this.estado.suspeitoAlvo;
+          // Zera o mandado após a prisão
+          this.estado.mandadoEmitidoPara = null;
+          // Exibe a ficha do preso com badge
+          this.abrirModal(this.estado.suspeitoAlvo, true);
+          this.finalizarPartida(true,
+            `✅ **VITÓRIA!** Você prendeu **${this.estado.suspeitoAlvo.codinome}** (${this.estado.suspeitoAlvo.nome_real}), o agente da KAOS-13!`
+          );
         } else {
-          this.finalizarPartida(false, `Catástrofe Judiciária! Você efetuou a prisão portando um mandado contra o agente errado (${this.estado.mandadoEmitidoPara}). O verdadeiro culpado era o ${this.estado.suspeitoAlvo.codinome}, que aproveitou a confusão legal para escapar.`);
+          this.finalizarPartida(false,
+            `❌ Você prendeu o agente errado (${this.estado.mandadoEmitidoPara}). O verdadeiro culpado era ${this.estado.suspeitoAlvo.codinome} e escapou!`
+          );
+          this.estado.mandadoEmitidoPara = null;
         }
       }
 
-      finalizarPartida(isVitoria, mensagemTexto) {
+      // ===== FINALIZAÇÃO =====
+      finalizarPartida(isVitoria, mensagem) {
+        this.estado.jogoFinalizado = true;
+        // Zera o mandato ao final do jogo (correção 1.4)
+        this.estado.mandadoEmitidoPara = null;
+
         document.getElementById("game-timer").classList.add("hidden");
         document.getElementById("app-nav").classList.add("hidden");
+        document.getElementById("box-esconderijo-final").classList.add("hidden");
+        document.getElementById("locais-grid").classList.add("hidden");
+        document.getElementById("box-chat-testemunha").classList.add("hidden");
 
         const splash = document.getElementById("view-splash");
-        splash.querySelector("p").innerHTML = `<strong style="color:${isVitoria?'#22c55e':'#ef4444'}; font-size:1.1rem;">${isVitoria?'VITÓRIA':'FIM DE JOGO'}</strong><br><br>${mensagemTexto}`;
-        splash.querySelector("button").innerText = "Jogar Novamente";
+        const icon = isVitoria ? "🏆" : "💀";
+        splash.querySelector("h2").textContent = isVitoria ? "MISSÃO CUMPRIDA" : "FALHA NA MISSÃO";
+        splash.querySelector(".subtitle").innerHTML =
+          `<strong style="color:${isVitoria ? '#22c55e' : '#ef4444'}; font-size:1.1rem;">${icon} ${isVitoria ? 'VITÓRIA' : 'DERROTA'}</strong><br><br>${mensagem}`;
+        splash.querySelector(".btn").innerText = "🔁 Jogar Novamente";
         this.mudarTela("splash");
+        // Garante que o splash exiba a mensagem correta
+        document.querySelector("#view-splash .btn").onclick = () => this.iniciarCaso();
       }
 
-      // resetarModelo: quando true (usuário trocou o provedor manualmente), reseta o campo Modelo para o padrão daquele provedor.
-      // quando false (carregando config salva), só ajusta a visibilidade dos campos de chave/endpoint.
+      // ===== CONFIGURAÇÃO =====
       ajustarCamposConfig(resetarModelo) {
         const prov = document.getElementById("cfg-provedor").value;
         const boxKey = document.getElementById("box-cfg-key");
@@ -621,21 +1639,21 @@
         const campoModelo = document.getElementById("cfg-modelo");
         const txtPadrao = document.getElementById("txt-modelo-padrao");
 
-        if(prov === "ollama") {
+        if (prov === "ollama") {
           boxKey.classList.add("hidden");
           boxUrl.classList.remove("hidden");
-          if(resetarModelo) document.getElementById("cfg-endpoint").value = "http://localhost:11434";
-        } else if(prov === "inception") {
+          if (resetarModelo) document.getElementById("cfg-endpoint").value = "http://localhost:11434";
+        } else if (prov === "inception") {
           boxKey.classList.remove("hidden");
           boxUrl.classList.remove("hidden");
-          if(resetarModelo) document.getElementById("cfg-endpoint").value = "https://api.inception.ai/v1/chat/completions";
+          if (resetarModelo) document.getElementById("cfg-endpoint").value = "https://api.inceptionlabs.ai/v1/chat/completions";
         } else {
           boxKey.classList.remove("hidden");
           boxUrl.classList.add("hidden");
         }
 
-        txtPadrao.innerText = `Padrão: ${MODELOS_PADRAO[prov] || '—'} (deixe em branco para usar este padrão)`;
-        if(resetarModelo) {
+        txtPadrao.innerText = `Padrão: ${MODELOS_PADRAO[prov] || '—'}`;
+        if (resetarModelo) {
           campoModelo.value = MODELOS_PADRAO[prov] || "";
         }
       }
@@ -651,7 +1669,7 @@
         localStorage.setItem("cfg_key", k);
         localStorage.setItem("cfg_endpoint", e);
 
-        alert("Configurações de IA salvas neste dispositivo!");
+        alert("✅ Configurações salvas!");
         this.mudarTela("splash");
       }
 
@@ -665,14 +1683,31 @@
       }
     }
 
+    // ============================================================
+    // 3. INSTÂNCIA E REGISTRO SW
+    // ============================================================
     const jogo = new EngineJogo();
 
-    // REGISTRO DO SERVICE WORKER (Atendimento a Requisitos de PWA)
+    // Garante que o botão "Jogar Novamente" sempre chame iniciarCaso
+    document.querySelector("#view-splash .btn").addEventListener("click", function(e) {
+      if (this.innerText.includes("Novamente")) {
+        jogo.iniciarCaso();
+      }
+    });
+
+    // Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(err => console.error("SW fail:", err));
+        navigator.serviceWorker.register('sw.js').catch(err => console.error("SW error:", err));
       });
     }
+
+    // Clique fora do modal para fechar
+    document.getElementById("modal-dossie").addEventListener("click", function(e) {
+      if (e.target === this) jogo.fecharModal();
+    });
+
+    console.log("🕵️ Caçada Mundial - KAOS-13 carregado com sucesso!");
   </script>
 </body>
 </html>
